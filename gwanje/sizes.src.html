@@ -1,0 +1,154 @@
+<title>꼬물이 크기 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Galmuri11"; src: url(data:font/woff2;base64,__FONT__) format("woff2"); font-display: block; }
+/* 크기 비교 판: 같은 꼬물이를 5가지 크기로 직접 찍어 같은 화면(320×180, 세로 180×320)에 넣어 본다 */
+:root {
+  --bg: #15131d; --panel: #1f1c2b; --line: #3a3550; --fg: #ece6f5; --dim: #9a93ad; --accent: #f2b46d;
+  --f: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.6 var(--f); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 32px; margin: 0; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { margin: 0; font-size: 22px; font-weight: 600; }
+p { margin: 0; color: var(--dim); max-width: 70ch; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bar button { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 4px 12px; cursor: pointer; }
+.bar button.on { border-color: var(--accent); color: var(--accent); }
+.bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.zoom { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.zoom figure { margin: 0; background: var(--panel); border: 1px solid var(--line); padding: 8px; display: grid; gap: 6px; justify-items: center; }
+.zoom canvas { image-rendering: pixelated; width: 100%; max-width: 180px; aspect-ratio: 1; }
+.zoom figcaption { font-size: 13px; text-align: center; }
+.zoom figcaption b { color: var(--accent); font-weight: 400; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.grid.tall { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+.cell { display: grid; gap: 4px; min-width: 0; }
+.cell canvas { width: 100%; image-rendering: pixelated; border: 1px solid var(--line); display: block; max-width: 100%; }
+.cell .cap { font-size: 13px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cell .cap b { color: var(--accent); font-weight: 400; }
+.cell .cap span { color: var(--dim); }
+.note { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; font-size: 13px; color: var(--dim); }
+.note b { color: var(--fg); font-weight: 400; }
+@media (max-width: 640px) { .zoom { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+
+<div class="wrap">
+  <h1>꼬물이 크기 비교</h1>
+  <p>같은 꼬물이를 키 8, 12, 16, 24, 32픽셀로 각각 직접 찍었습니다(늘린 것이 아님). 아래는 그 꼬물이들을 같은 크기의 화면에 넣은 모습입니다. 층 높이는 꼬물이 키에 맞춰 바뀌므로, 작을수록 한 화면에 층과 꼬물이가 많이 들어갑니다.</p>
+
+  <div class="zoom" id="zoom"></div>
+
+  <div class="note"><b>참고 · 세피리아 실측</b> 보내 주신 스크린샷을 재 보니, 토끼 캐릭터가 화면에서 <b>폭 약 9~10, 키 약 12픽셀</b>이고, 게임 화면은 대략 <b>320×180 픽셀</b>을 크게 늘린 것으로 보입니다. 이 판의 12픽셀 칸이 세피리아와 비슷한 비율입니다.</div>
+
+  <div class="bar" role="group" aria-label="화면 방향">
+    <button type="button" id="landscape" class="on">PC 옆 창 (가로 320×180)</button>
+    <button type="button" id="portrait">폰 (세로 180×320)</button>
+    <button type="button" id="pause">멈추기</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+'use strict';
+const SIZES = [8, 12, 16, 24, 32];
+const C = { out: '#2b1d2c', body: '#f2b46d', shade: '#d98a4e', hi: '#ffe0aa', eye: '#1b1420', glint: '#ffffff', ant: '#7fe0d0', box: '#e9e2cc', boxS: '#b9ae8e', tape: '#d8344a' };
+
+// 꼬물이 한 장 만들기: 크기마다 같은 규칙으로 직접 찍는다
+function critter(s, frame) {
+  const c = document.createElement('canvas'); c.width = s; c.height = s; const x = c.getContext('2d');
+  const px = (a, b, col) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); };
+  const legH = Math.max(1, Math.round(s * 0.14)), top = Math.round(s * (s <= 8 ? 0.12 : 0.16)), bot = s - legH - 1;
+  const cx = (s - 1) / 2, rx = s * (s <= 8 ? 0.46 : 0.4), ry = (bot - top) / 2 + 0.4, cy = top + ry - 0.4 + (frame ? 0.5 : 0);
+  const inside = (i, j) => ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2 <= 1;
+  for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) {
+    if (!inside(i, j)) continue;
+    const edge = !inside(i - 1, j) || !inside(i + 1, j) || !inside(i, j - 1) || !inside(i, j + 1);
+    let col = C.body;
+    if (s >= 12 && j > cy + ry * 0.35) col = C.shade;
+    if (s >= 16 && i < cx - rx * 0.2 && j < cy - ry * 0.35) col = C.hi;
+    px(i, j, edge ? C.out : col);
+  }
+  // 눈
+  const e = s <= 12 ? 1 : s <= 24 ? 2 : 3, ey = Math.round(cy - (s <= 8 ? 0 : ry * 0.15)), ex = Math.round(rx * 0.42);
+  for (const sx of [-1, 1]) { const x0 = Math.round(cx + sx * ex - (e - 1) / 2); x.fillStyle = C.eye; x.fillRect(x0, ey, e, e + (s >= 16 ? 1 : 0)); if (s >= 24) px(x0, ey, C.glint); }
+  // 볼
+  if (s >= 16) { x.fillStyle = '#f08a7a'; for (const sx of [-1, 1]) x.fillRect(Math.round(cx + sx * rx * 0.62 - 1), ey + e + 1, Math.max(1, Math.round(s / 12)), 1); }
+  // 더듬이
+  if (s >= 12) { const ah = Math.max(1, Math.round(s * 0.12)), ax = Math.round(cx + (frame ? 1 : 0)); x.fillStyle = C.out; x.fillRect(ax, top - ah, 1, ah); px(ax, top - ah - 1, C.ant); if (s >= 24) { px(ax - 1, top - ah - 1, C.ant); px(ax, top - ah - 2, C.ant); } }
+  // 다리 (두 장이 번갈아)
+  const lw = Math.max(1, Math.round(s / 10));
+  for (const [k, sx] of [[0, -1], [1, 1]]) { const lx = Math.round(cx + sx * rx * 0.45 - lw / 2), lift = (frame === k && legH > 1) ? 1 : 0; x.fillStyle = C.out; x.fillRect(lx, bot + 1, lw, legH - lift); }
+  return c;
+}
+function box(s) {
+  const b = Math.max(3, Math.round(s * 0.42)), c = document.createElement('canvas'); c.width = b; c.height = b; const x = c.getContext('2d');
+  x.fillStyle = C.out; x.fillRect(0, 0, b, b); x.fillStyle = C.box; x.fillRect(1, 1, b - 2, b - 2); x.fillStyle = C.boxS; x.fillRect(1, b - 2, b - 2, 1);
+  if (b >= 5) { x.fillStyle = C.tape; x.fillRect(Math.floor(b / 2), 1, 1, b - 2); }
+  return c;
+}
+const SPR = {}; SIZES.forEach(s => SPR[s] = [critter(s, 0), critter(s, 1), box(s)]);
+
+// 확대 보기
+const zoom = document.getElementById('zoom');
+SIZES.forEach(s => {
+  const f = document.createElement('figure'), cv = document.createElement('canvas'), pad = Math.ceil(s * 0.5);
+  cv.width = s * 2 + pad * 3; cv.height = cv.width; const x = cv.getContext('2d');
+  x.drawImage(SPR[s][0], pad, Math.round((cv.height - s) / 2)); x.drawImage(SPR[s][1], pad * 2 + s, Math.round((cv.height - s) / 2));
+  f.append(cv); const cap = document.createElement('figcaption'); cap.innerHTML = `<b>${s}px</b> · 두 장 걷기`; f.append(cap); zoom.append(f);
+});
+
+// 컴퓨터 속 장면
+const ROOMS = [['#2e3d5c', '#6aa0ff', 'CPU'], ['#3a2f4f', '#c08aff', '메모리'], ['#2f4a3e', '#5fd39a', '저장'], ['#4a3030', '#ff8a6a', 'GPU'], ['#2c4450', '#7fe0d0', '팬']];
+let W = 320, H = 180, scenes = [], paused = false;
+function makeScene(s) {
+  const floorH = Math.round(s * 2.3) + 2, floors = Math.max(1, Math.floor((H - 6) / floorH)), roomW = Math.max(s * 3, Math.round(s * 4.2)), cols = Math.max(1, Math.floor((W - 4) / roomW));
+  const bg = document.createElement('canvas'); bg.width = W; bg.height = H; const x = bg.getContext('2d');
+  x.fillStyle = '#141a2a'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#1d2740'; for (let k = 0; k < 30; k++) { const yy = (k * 37) % H, xx = (k * 53) % W; x.fillRect(xx, yy, 18, 1); x.fillRect(xx + 18, yy, 1, 9); }
+  const oy = H - floors * floorH - 2, ox = Math.floor((W - cols * roomW) / 2);
+  for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) {
+    const r = ROOMS[(f * 2 + c) % ROOMS.length], rx = ox + c * roomW, ry = oy + f * floorH;
+    x.fillStyle = r[0]; x.fillRect(rx + 1, ry + 1, roomW - 2, floorH - 3);
+    x.fillStyle = r[1]; x.globalAlpha = .55; x.fillRect(rx + 1, ry + 1, roomW - 2, 1); x.globalAlpha = 1;
+    x.fillStyle = '#0c0f18'; x.fillRect(rx, ry + floorH - 2, roomW, 2);
+    if (s >= 16) { x.fillStyle = r[1]; x.globalAlpha = .35; x.fillRect(rx + 3, ry + 4, Math.round(s * 0.6), Math.round(s * 0.35)); x.globalAlpha = 1; }
+  }
+  // 사다리
+  for (let f = 0; f < floors - 1; f++) { const lx = ox + ((f % 2) ? cols * roomW - Math.round(s * 0.8) - 2 : 2), ly = oy + f * floorH + floorH - 2; x.fillStyle = '#8f8aa0'; x.fillRect(lx, ly - floorH + 3, 1, floorH); x.fillRect(lx + Math.round(s * 0.6), ly - floorH + 3, 1, floorH); for (let k = 0; k < floorH; k += Math.max(2, Math.round(s / 4))) x.fillRect(lx, ly - floorH + 3 + k, Math.round(s * 0.6) + 1, 1); }
+  const n = Math.round(floors * cols * 1.4), mobs = [];
+  for (let k = 0; k < n; k++) { const f = k % floors; mobs.push({ f, x: ox + Math.random() * (cols * roomW - s), v: (Math.random() < .5 ? -1 : 1) * (6 + Math.random() * 10) * (s / 12) ** 0.5, carry: Math.random() < .55, ph: Math.random() * 6, rest: 0 }); }
+  return { s, floorH, floors, cols, roomW, ox, oy, bg, mobs };
+}
+function draw(sc, ctx, t, dt) {
+  ctx.drawImage(sc.bg, 0, 0);
+  const { s } = sc, minX = sc.ox, maxX = sc.ox + sc.cols * sc.roomW - s;
+  for (const m of sc.mobs) {
+    if (!paused) { if (m.rest > 0) m.rest -= dt; else { m.x += m.v * dt; if (m.x < minX || m.x > maxX) { m.v = -m.v; m.x = Math.max(minX, Math.min(maxX, m.x)); } if (Math.random() < dt * 0.15) m.rest = 0.6 + Math.random(); } }
+    const fr = m.rest > 0 ? 0 : (Math.floor(t * 6 + m.ph) % 2), y = sc.oy + m.f * sc.floorH + sc.floorH - 2 - s;
+    const img = SPR[s][fr], xx = Math.round(m.x);
+    if (m.v < 0) { ctx.save(); ctx.translate(xx + s, y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); } else ctx.drawImage(img, xx, y);
+    if (m.carry) { const b = SPR[s][2]; ctx.drawImage(b, Math.round(xx + (s - b.width) / 2), y - b.height + Math.round(s * 0.2) - (fr ? 0 : 1)); }
+  }
+}
+const grid = document.getElementById('grid');
+function build() {
+  grid.innerHTML = ''; grid.classList.toggle('tall', H > W); scenes = [];
+  SIZES.forEach(s => {
+    const sc = makeScene(s), cell = document.createElement('div'); cell.className = 'cell';
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cell.append(cv);
+    const cap = document.createElement('div'); cap.className = 'cap'; cap.innerHTML = `<b>${s}px 꼬물이</b><span>층 ${sc.floors} · 방 ${sc.floors * sc.cols} · 꼬물이 ${sc.mobs.length}</span>`; cell.append(cap);
+    grid.append(cell); scenes.push([sc, cv.getContext('2d')]);
+  });
+}
+let last = performance.now();
+function loop(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; for (const [sc, ctx] of scenes) draw(sc, ctx, now / 1000, dt); requestAnimationFrame(loop); }
+const setMode = land => { [W, H] = land ? [320, 180] : [180, 320]; document.getElementById('landscape').classList.toggle('on', land); document.getElementById('portrait').classList.toggle('on', !land); build(); };
+document.getElementById('landscape').onclick = () => setMode(true);
+document.getElementById('portrait').onclick = () => setMode(false);
+document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? '움직이기' : '멈추기'; };
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) { paused = true; document.getElementById('pause').textContent = '움직이기'; }
+build(); requestAnimationFrame(loop);
+</script>
