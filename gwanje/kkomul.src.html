@@ -1,0 +1,480 @@
+<title>컴퓨터 속 꼬물이</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Galmuri11"; src: url(data:font/woff2;base64,__FONT__) format("woff2"); font-display: block; }
+/* 컴퓨터 본체 단면 한 화면 + 아래 띠(방송), 버튼, 전표. 어두운 기판 위에 켜진 것만 밝게. */
+:root {
+  --bg: #12101a; --panel: #1c1928; --line: #363049; --fg: #ece6f5; --dim: #9a93ad;
+  --bit: #7fe0d0; --warm: #f2b46d; --hot: #ff6a5a; --paper: #e9e2cc; --ink: #2a2338; --inkdim: #6b6258;
+  --f: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.5 var(--f); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; -webkit-font-smoothing: none; }
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid var(--bit); outline-offset: 2px; }
+.wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 10px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 6px 16px; }
+h1 { margin: 0; font-size: 20px; font-weight: 400; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-variant-numeric: tabular-nums; align-items: baseline; }
+.stats b { font-weight: 400; color: var(--bit); font-size: 20px; }
+.stats span { color: var(--dim); }
+.stats .mood { color: var(--warm); }
+.screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 16 / 9; max-width: 100%; }
+.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; cursor: pointer; }
+.osd { position: absolute; left: 8px; top: 6px; font-size: 12px; text-shadow: 1px 1px 0 #000; pointer-events: none; }
+.osd2 { position: absolute; right: 8px; top: 6px; font-size: 12px; text-shadow: 1px 1px 0 #000; pointer-events: none; text-align: right; }
+.ticker { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; white-space: nowrap; overflow: hidden; color: var(--dim); }
+.ticker b { color: var(--fg); font-weight: 400; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.acts button { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; cursor: pointer; color: var(--dim); }
+.acts button:hover { color: var(--fg); }
+.acts button.ready { border-color: var(--bit); color: var(--fg); }
+.acts button.on { border-color: var(--warm); color: var(--warm); }
+.acts kbd { font: inherit; color: var(--fg); border: 1px solid var(--line); padding: 0 4px; margin-right: 4px; }
+.low { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.slip { background: var(--paper); color: var(--ink); padding: 8px 10px; display: grid; gap: 5px; align-content: start; }
+.slip h2 { margin: 0; font-size: 13px; font-weight: 400; display: flex; justify-content: space-between; border-bottom: 1px dashed var(--inkdim); padding-bottom: 3px; }
+.slip h2 button { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; font-size: 12px; }
+.qb { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; text-align: left; background: #d9d0b4; border: 1px solid var(--inkdim); padding: 4px 8px; cursor: pointer; color: var(--ink); }
+.qb:hover { background: #fff6dc; }
+.qb.first { border: 2px solid var(--ink); }
+.qb b { font-weight: 400; }
+.qb em { font-style: normal; font-variant-numeric: tabular-nums; }
+.qb i { grid-column: 1 / -1; font-style: normal; font-size: 11px; color: var(--inkdim); }
+.qempty { font-size: 12px; color: var(--inkdim); }
+.crew { background: var(--panel); border: 1px solid var(--line); padding: 8px 10px; display: grid; gap: 3px; align-content: start; font-size: 12px; }
+.crew h2 { margin: 0 0 2px; font-size: 13px; font-weight: 400; color: var(--dim); }
+.crew button { display: grid; grid-template-columns: 5.5em 3em 1fr 4.5em; gap: 8px; align-items: center; background: none; border: 0; padding: 1px 0; text-align: left; cursor: pointer; color: var(--fg); }
+.crew button.sel { color: var(--warm); }
+.crew .hb { height: 5px; background: #2a2538; }
+.crew .hb i { display: block; height: 100%; background: var(--warm); }
+.crew .st { color: var(--dim); }
+.ov { position: fixed; inset: 0; background: rgba(10,8,18,.82); display: grid; place-items: center; z-index: 20; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
+.sheet { background: var(--paper); color: var(--ink); width: min(900px, 100%); max-height: 100%; overflow: auto; padding: 14px 16px; }
+.sheet h2 { margin: 0 0 6px; font-size: 17px; font-weight: 400; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.sheet h2 small { font-size: 12px; color: var(--inkdim); }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.col h3 { margin: 0 0 6px; font-size: 13px; font-weight: 400; border-bottom: 1px solid var(--ink); }
+.node { display: block; width: 100%; text-align: left; background: #d9d0b4; border: 1px solid var(--inkdim); padding: 5px 7px; margin-bottom: 8px; cursor: pointer; color: var(--ink); }
+.node b { font-weight: 400; display: block; }
+.node i { font-style: normal; font-size: 11px; color: var(--inkdim); display: block; }
+.node em { font-style: normal; font-size: 12px; }
+.node.own { background: var(--ink); color: var(--paper); }
+.node.own i { color: #b9b0c9; }
+.node.can { border: 2px solid var(--ink); background: #fff6dc; }
+.node.lock { opacity: .55; cursor: default; }
+.report { background: var(--paper); color: var(--ink); width: min(440px, 100%); padding: 16px 18px; display: grid; gap: 6px; }
+.report h2 { margin: 0; font-size: 18px; font-weight: 400; }
+.report .row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--inkdim); font-variant-numeric: tabular-nums; }
+.report p { margin: 0; color: var(--inkdim); }
+.report button { background: var(--ink); color: var(--paper); border: 0; padding: 8px; cursor: pointer; margin-top: 6px; }
+.help { font-size: 12px; color: var(--dim); }
+@media (max-width: 720px) { .low { grid-template-columns: minmax(0, 1fr); } .cols { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>컴퓨터 속 꼬물이</h1>
+    <div class="stats"><b id="bits">0 비트</b><span id="clock">1일째 07:00</span><span class="mood" id="mood">인간 기분 70</span></div>
+  </header>
+  <div class="screen"><canvas id="cv" width="384" height="216"></canvas><div class="osd" id="osd"></div><div class="osd2" id="osd2"></div></div>
+  <div class="ticker" id="ticker"><b>방송</b> 인간이 컴퓨터를 켰다.</div>
+  <div class="acts">
+    <button type="button" id="aBoost"><kbd>Space</kbd>클럭 부스트</button>
+    <button type="button" id="aCool"><kbd>F</kbd>냉각 숨결</button>
+    <button type="button" id="aZoom"><kbd>Z</kbd>확대해서 따라가기</button>
+    <button type="button" id="aNext"><kbd>C</kbd>다른 꼬물이</button>
+    <button type="button" id="aBuy"><kbd>Q</kbd>추천 구매</button>
+    <button type="button" id="aTree"><kbd>T</kbd>부품 장부</button>
+  </div>
+  <div class="low">
+    <div class="slip"><h2><span>추천 전표</span><button type="button" id="openTree">부품 장부 전체 (T)</button></h2><div id="quick"></div></div>
+    <div class="crew" id="crew"><h2>꼬물이들 (누르면 따라가기)</h2></div>
+  </div>
+  <p class="help">요청 꾸러미는 맨 아래 입구로 들어와 메모리 선반에 쌓입니다. 꼬물이가 꾸러미를 들고 저장 창고, CPU 주방, GPU 화실을 거쳐 맨 위 모니터로 내보냅니다. 일하면 몸과 방이 뜨거워지고, 너무 뜨거우면 팬 앞으로 식히러 갑니다.</p>
+</div>
+
+<div class="ov" id="treeOv" hidden><div class="sheet" role="dialog" aria-label="부품 장부"><h2><span>부품 장부</span><small id="treeInfo"></small></h2><div class="cols" id="cols"></div></div></div>
+<div class="ov" id="repOv" hidden><div class="report" role="dialog" aria-label="오늘의 인간" id="rep"></div></div>
+
+<script>
+'use strict';
+// ───────── 표 ─────────
+const W = 384, H = 216, FH = 52, TOP = 6, SHAFT = [8, 376];
+const floorY = f => TOP + (f + 1) * FH - 3;            // 그 층 바닥(발 높이)
+// 방: 위에서부터 0층. 데이터는 아래(3층)에서 들어와 위(0층)로 나간다.
+const ROOMS = {
+  fan: { n: '팬 터널',    f: 0, x0: 16,  x1: 116, col: '#24384a', lit: '#7fe0d0' },
+  gpu: { n: 'GPU 화실',   f: 0, x0: 116, x1: 268, col: '#3e2a3a', lit: '#ff8ab8' },
+  out: { n: '모니터 출구', f: 0, x0: 268, x1: 368, col: '#1e3048', lit: '#8ac8ff' },
+  cpu: { n: 'CPU 주방',   f: 1, x0: 16,  x1: 236, col: '#3e3024', lit: '#ffb36a' },
+  rest:{ n: '휴게실',     f: 1, x0: 236, x1: 368, col: '#2c2a40', lit: '#c8b8ff' },
+  sto: { n: '저장 창고',  f: 2, x0: 16,  x1: 204, col: '#26382c', lit: '#8fe0a0' },
+  pwr: { n: '전원부',     f: 2, x0: 204, x1: 368, col: '#2e2a22', lit: '#ffe27a' },
+  mem: { n: '메모리 선반', f: 3, x0: 16,  x1: 280, col: '#2a2840', lit: '#b8a8ff' },
+  inp: { n: '입구 포트',  f: 3, x0: 280, x1: 368, col: '#22303a', lit: '#7fe0d0' },
+};
+const TYPES = {
+  text:  { n: '글',   route: ['cpu', 'out'],               bits: 5,  col: '#f4f1ff', work: { cpu: 3 } },
+  photo: { n: '사진', route: ['sto', 'gpu', 'out'],        bits: 14, col: '#8ac8ff', work: { sto: 2.5, gpu: 4 } },
+  video: { n: '영상', route: ['sto', 'cpu', 'gpu', 'out'], bits: 36, col: '#ff6a7a', work: { sto: 3, cpu: 3.5, gpu: 5 } },
+};
+const TOPICS = {
+  text: ['"라면 맛있게 끓이는 법" 검색', '메일 답장 쓰는 중', '"월요병 극복" 검색', '회의록 정리', '"고양이 왜 박스 좋아함" 검색', '새벽 감성 일기 작성', '"탕수육 부먹 찍먹" 검색'],
+  photo: ['고양이 사진 넘기는 중', '점심 메뉴 사진 찾는 중', '여행 사진 보는 중', '밈 이미지 저장', '옛날 사진 정리'],
+  video: ['고양이 영상 몰아 보는 중', '요리 영상 틀어 둠', '드라마 정주행', '음악 영상 반복 재생', '먹방 보면서 밥 먹는 중'],
+};
+const NAMES = ['꼬미', '물이', '삑이', '도리', '콩이', '비트', '바이', '클로', '모리', '찌리'];
+const TINTS = ['#f2b46d', '#9fd88a', '#8ac8ff', '#f2a0c8', '#e8d870', '#c8a8ff', '#ff9a6a', '#7fe0d0', '#f4f1ff', '#d8b890'];
+const COLS = ['부품', '꼬물이', '요청'];
+const NODES = [
+  // id, col, 이름, 설명, 값, 효과, 앞 노드
+  ['mem1', 0, '메모리 선반 +4', '꾸러미를 더 많이 쌓아 둘 수 있다. 인간이 새로고침을 덜 누른다.', 30, { mem: 4 }],
+  ['cpu2', 0, 'CPU 책상 +1', 'CPU 주방에 화구가 하나 더 생긴다. 줄이 짧아진다.', 45, { desk: 'cpu' }, 'mem1'],
+  ['fan1', 0, '팬 강화', '팬이 더 세게 돈다. 꼬물이와 방이 빨리 식는다.', 70, { cool: 1.6 }, 'cpu2'],
+  ['sto2', 0, '저장 책상 +1', '창고 서랍이 하나 더 열린다.', 140, { desk: 'sto' }, 'fan1'],
+  ['gpu2', 0, 'GPU 책상 +1', '화실에 이젤이 하나 더 선다.', 260, { desk: 'gpu' }, 'sto2'],
+  ['sink', 0, '방열판', '방이 덜 뜨거워진다.', 480, { sink: 0.65 }, 'gpu2'],
+  ['cpu3', 0, 'CPU 책상 +1', '화구 세 개. 주방이 북적인다.', 900, { desk: 'cpu' }, 'sink'],
+  ['mem2', 0, '메모리 선반 +6', '선반을 한 칸 더 올렸다.', 1500, { mem: 6 }, 'cpu3'],
+  ['gpu3', 0, 'GPU 책상 +1', '이젤 세 개. 영상도 거뜬하다.', 2600, { desk: 'gpu' }, 'mem2'],
+  ['hire2', 1, '꼬물이 +1', '전원부 틈에서 한 마리 더 기어 나왔다.', 20, { hire: 1 }],
+  ['shoe', 1, '작은 운동화', '모두 더 빨리 걷고 사다리를 오른다.', 90, { walk: 1.3 }, 'hire2'],
+  ['hire3', 1, '꼬물이 +1', '휴게실이 조금 붐빈다.', 160, { hire: 1 }, 'shoe'],
+  ['cool', 1, '냉각 숨결 (F)', '누르면 모두의 몸과 방이 한 번에 식는다. 60초마다.', 300, { skill: 'cool' }, 'hire3'],
+  ['hire4', 1, '꼬물이 +1', '새로 온 애는 아직 길을 헤맨다.', 600, { hire: 1 }, 'cool'],
+  ['coffee', 1, '정전기 커피', '모두 일하는 속도 +25%.', 1000, { work: 1.25 }, 'hire4'],
+  ['hire5', 1, '꼬물이 +1', '이름은 다들 알아서 지었다.', 1800, { hire: 1 }, 'coffee'],
+  ['hire6', 1, '꼬물이 +1', '이제 휴게실 소파가 모자라다.', 3200, { hire: 1 }, 'hire5'],
+  ['photo', 2, '사진 열기', '인간이 사진을 보기 시작한다. 저장 창고와 GPU 화실이 일한다.', 35, { type: 'photo' }],
+  ['video', 2, '영상 열기', '인간이 영상을 본다. 창고, 주방, 화실을 모두 거치는 큰 일감.', 700, { type: 'video' }, 'photo'],
+  ['game', 2, '게임 (다음 컴퓨터에서)', '이 컴퓨터로는 무리다. 다음 시즌에.', 1e12, { none: 1 }, 'video'],
+];
+const NODE = {}; const NLIST = NODES.map(r => (NODE[r[0]] = { id: r[0], col: r[1], n: r[2], d: r[3], cost: Math.max(10, Math.round(r[4] * 0.6 / 5) * 5), e: r[5], prev: r[6] }));
+
+// ───────── 상태 ─────────
+const KEY = 'kkomul.v0';
+let S;
+function fresh() { return { bits: 0, total: 0, owned: {}, t: 0, day: 1, mood: 70, crew: [0, 1].map(i => ({ i, xp: 0, lvl: 1 })), today: newToday(), boostCd: 0, coolCd: 0 }; }
+function newToday() { return { text: 0, photo: 0, video: 0, bits: 0, refresh: 0, topics: [] }; }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.crew) return Object.assign(fresh(), s); } catch (e) {} return fresh(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+S = load();
+let D;
+function derive() {
+  const d = { mem: 6, desk: { cpu: 1, sto: 1, gpu: 1, out: 2, fan: 3 }, cool: 1, sink: 1, walk: 1, work: 1, skills: { boost: 1 }, types: ['text'] };
+  for (const n of NLIST) if (S.owned[n.id]) { const e = n.e; if (e.mem) d.mem += e.mem; if (e.desk) d.desk[e.desk]++; if (e.cool) d.cool *= e.cool; if (e.sink) d.sink *= e.sink; if (e.walk) d.walk *= e.walk; if (e.work) d.work *= e.work; if (e.skill) d.skills[e.skill] = 1; if (e.type) d.types.push(e.type); }
+  return d;
+}
+D = derive();
+
+// ───────── 런타임 ─────────
+const DAY = 600;                       // 하루 = 10분(시제품)
+const hourOf = t => (7 + (t % DAY) / DAY * 24) % 24;
+let packets = [], shelf = [], deliveredFx = [], fx = [], heat = { cpu: 0, gpu: 0, sto: 0 }, desks = {}, queues = {};
+const crew = [];
+function deskXs(room, n) { const r = ROOMS[room], pad = 22, span = r.x1 - r.x0 - pad * 2, out = []; for (let k = 0; k < n; k++) out.push(Math.round(r.x0 + pad + (n === 1 ? span / 2 : span * k / (n - 1)))); return out; }
+// 책상 객체는 그대로 두고 자리만 옮긴다(앉아 있는 꼬물이가 같은 책상을 계속 가리키도록)
+function rebuildDesks() { for (const k of ['cpu', 'sto', 'gpu', 'out', 'fan']) { const xs = deskXs(k, D.desk[k]), arr = desks[k] || (desks[k] = []); xs.forEach((x, i) => { if (arr[i]) arr[i].x = x; else arr.push({ x, by: null }); }); queues[k] = queues[k] || []; } }
+function addCrew(c) { const r = ROOMS.rest; crew.push({ ...c, name: NAMES[c.i % NAMES.length], tint: TINTS[c.i % TINTS.length], f: r.f, x: r.x0 + 20 + Math.random() * 80, y: floorY(r.f), wps: [], st: 'idle', pk: null, heat: 0, face: 1, ph: Math.random() * 6, wt: 0, wx: r.x0 + 30, desk: null, room: null, say: '', sayT: 0 }); }
+S.crew.forEach(addCrew); rebuildDesks();
+
+// 길: 같은 층이면 걷고, 아니면 가까운 사다리로 가서 오르내린다
+function moveTo(c, f, x) {
+  c.wps = [];
+  if (c.f !== f) { const sx = SHAFT.reduce((a, b) => Math.abs(c.x - b) + Math.abs(x - b) < Math.abs(c.x - a) + Math.abs(x - a) ? b : a); c.wps.push({ f: c.f, x: sx }, { f, x: sx }); }
+  c.wps.push({ f, x });
+}
+const speedOf = c => (1 + (c.lvl - 1) * 0.08) * (boostT > 0 ? 2 : 1);
+let boostT = 0;
+function stepCrew(c, dt) {
+  c.ph += dt; c.sayT = Math.max(0, c.sayT - dt);
+  if (c.wps.length) {
+    const w = c.wps[0];
+    if (w.f !== c.f) { const ty = floorY(w.f), dy = ty - c.y, v = 34 * D.walk * speedOf(c) * dt; if (Math.abs(dy) <= v) { c.y = ty; c.f = w.f; c.wps.shift(); } else c.y += Math.sign(dy) * v; c.climb = true; return; }
+    c.climb = false; c.y = floorY(c.f);
+    const dx = w.x - c.x, v = 30 * D.walk * speedOf(c) * dt; c.face = dx >= 0 ? 1 : -1;
+    if (Math.abs(dx) <= v) { c.x = w.x; c.wps.shift(); } else c.x += Math.sign(dx) * v;
+    return;
+  }
+  c.climb = false;
+  switch (c.st) {
+    case 'idle': {
+      if (c.heat > 40) { goCool(c); break; }
+      const p = shelf.find(p => !p.by); if (p) { p.by = c; c.pk = p; c.st = 'fetch'; moveTo(c, ROOMS.mem.f, p.sx); break; }
+      c.wt -= dt; if (c.wt <= 0) { c.wt = 2 + Math.random() * 4; const r = ROOMS.rest; if (c.f === r.f && c.x >= r.x0 && c.x <= r.x1) { c.wx = r.x0 + 14 + Math.random() * (r.x1 - r.x0 - 28); moveTo(c, r.f, c.wx); } else moveTo(c, r.f, r.x0 + 20 + Math.random() * 80); }
+      break;
+    }
+    case 'fetch': { const p = c.pk; shelf.splice(shelf.indexOf(p), 1); p.carried = true; c.st = 'go'; nextStation(c); break; }
+    case 'go': { // 도착: 책상이 비면 앉고, 아니면 줄
+      const room = c.room, d = desks[room].find(d => !d.by);
+      if (d && (queues[room][0] === c || !queues[room].length)) { if (queues[room][0] === c) queues[room].shift(); d.by = c; c.desk = d; c.st = 'walkDesk'; moveTo(c, ROOMS[room].f, d.x); }
+      else { if (!queues[room].includes(c)) queues[room].push(c); const qi = queues[room].indexOf(c), r = ROOMS[room]; const qx = r.x0 + 8 + qi * 9; if (Math.abs(c.x - qx) > 1) moveTo(c, r.f, qx); c.st = 'go'; c.face = 1; }
+      break;
+    }
+    case 'walkDesk': c.st = 'work'; c.wt = (TYPES[c.pk.type].work[c.room] || 1); break;
+    case 'work': {
+      const hot = c.room === 'out' ? 1 : 1 / (1 + Math.max(0, heat[c.room] - 55) / 45);
+      const tired = c.heat > 85 ? 0.7 : 1;
+      c.wt -= dt * D.work * speedOf(c) * hot * tired;
+      const hk = c.room === 'out' ? 0 : c.room === 'sto' ? 2.5 : 6;
+      c.heat = Math.min(100, c.heat + hk * dt * (boostT > 0 ? 1.6 : 1));
+      if (heat[c.room] !== undefined) heat[c.room] = Math.min(100, heat[c.room] + (c.room === 'sto' ? 1.2 : 3.2) * dt * D.sink * (boostT > 0 ? 1.4 : 1));
+      if (Math.random() < dt * 3) fx.push({ k: 'spark', x: c.x + c.face * 6, y: c.y - 10, t: 0, life: .35, col: ROOMS[c.room].lit });
+      if (c.wt <= 0) { c.desk.by = null; c.desk = null; if (c.room === 'out') deliver(c); else { c.pk.step++; c.st = 'go'; nextStation(c); } }
+      break;
+    }
+    case 'cool': { c.heat = Math.max(0, c.heat - 22 * D.cool * dt); if (c.heat <= 5) { c.desk.by = null; c.desk = null; c.st = 'idle'; c.wt = 0; } break; }
+    case 'goCool': c.st = 'cool'; break;
+    case 'waitCool': { const d = desks.fan.find(d => !d.by); if (d) { d.by = c; c.desk = d; c.st = 'goCool'; moveTo(c, ROOMS.fan.f, d.x); } break; }
+  }
+}
+function nextStation(c) { const room = TYPES[c.pk.type].route[c.pk.step]; c.room = room; const r = ROOMS[room]; moveTo(c, r.f, r.x0 + 10); }
+function goCool(c) { c.st = 'waitCool'; c.room = 'fan'; moveTo(c, ROOMS.fan.f, ROOMS.fan.x1 - 10); say(c, '더워...'); }
+function say(c, s) { c.say = s; c.sayT = 2.2; }
+function deliver(c) {
+  const p = c.pk, ty = TYPES[p.type], wait = S.t - p.t0;
+  S.mood = Math.max(0, Math.min(100, S.mood + (wait < 30 ? 1.5 : wait < 60 ? 0.3 : -1)));
+  const amt = ty.bits * (0.5 + S.mood / 100);
+  S.bits += amt; S.total += amt; S.today.bits += amt; S.today[p.type]++;
+  const sc = S.crew[c.i]; sc.xp++; c.xp = sc.xp;
+  if (sc.xp >= sc.lvl * 6) { sc.xp = 0; sc.lvl++; c.lvl = sc.lvl; say(c, `레벨 ${sc.lvl}!`); fx.push({ k: 'lvl', x: c.x, y: c.y - 18, t: 0, life: 1.2 }); log(`<b>${c.name}</b> 레벨 ${sc.lvl}. 조금 더 빨라졌다.`); }
+  deliveredFx.push({ col: ty.col, t: 0 }); if (deliveredFx.length > 12) deliveredFx.shift();
+  fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .9, s: '+' + Math.round(amt) });
+  c.pk = null; c.room = null; c.st = 'idle'; c.wt = 0;
+  if (c.heat > 70) goCool(c);
+}
+
+// 도착: 시간대마다 요청 종류와 양이 바뀐다
+let arrAcc = 0;
+function rateNow() { const h = hourOf(S.t); const curve = h < 1 ? 0.9 : h < 6 ? 0.35 : h < 9 ? 1.0 : h < 12 ? 0.8 : h < 14 ? 1.2 : h < 18 ? 0.8 : 1.3; return (0.06 + 0.009 * Object.keys(S.owned).length + 0.01 * (S.day - 1)) * curve; }
+function pickType() {
+  const h = hourOf(S.t), w = { text: h >= 22 || h < 6 ? 3 : h < 12 ? 4 : 2, photo: h >= 11 && h < 15 ? 4 : 2, video: h >= 18 || h < 2 ? 4 : 1 };
+  const av = D.types, tot = av.reduce((s, k) => s + w[k], 0); let r = Math.random() * tot; for (const k of av) { r -= w[k]; if (r <= 0) return k; } return av[0];
+}
+function arrive() {
+  const type = pickType();
+  if (shelf.length >= D.mem) { S.mood = Math.max(0, S.mood - 1.5); S.today.refresh++; fx.push({ k: 'bounce', x: ROOMS.inp.x0 + 40, y: floorY(3) - 14, t: 0, life: .8 }); if (Math.random() < 0.4) log('<b>인간</b> (새로고침을 눌렀다)'); return; }
+  const slot = firstFreeSlot(); const p = { type, t0: S.t, step: 0, by: null, slot, sx: slotXY(slot)[0] };
+  shelf.push(p); packets.push(p);
+  fx.push({ k: 'zip', x: W, y: floorY(3) - 6, t: 0, life: .6 });
+  if (Math.random() < 0.35) { const tp = TOPICS[type][Math.floor(Math.random() * TOPICS[type].length)]; ticker(`인간이 ${tp}`); if (S.today.topics.length < 30) S.today.topics.push(tp); }
+}
+function slotXY(i) { const r = ROOMS.mem, perRow = 12, col = i % perRow, row = Math.floor(i / perRow); return [r.x0 + 28 + col * 18, floorY(r.f) - 22 - row * 10]; }
+function firstFreeSlot() { for (let i = 0; ; i++) if (!shelf.some(p => p.slot === i)) return i; }
+
+// 하루 흐름과 잡담
+let chatT = 8, saveT = 5, lastHour = 7;
+const CHAT = ['오늘 인간 왜 이렇게 바빠?', '고양이 또 봐?', '이 꾸러미 무거워...', '팬 앞 명당이다', '레벨 오르면 뭐 줘?', '새벽엔 좀 쉬자', '부먹이래 부먹'];
+function step(dt) {
+  S.t += dt; boostT = Math.max(0, boostT - dt); S.boostCd = Math.max(0, S.boostCd - dt); S.coolCd = Math.max(0, S.coolCd - dt);
+  arrAcc += dt * rateNow(); while (arrAcc >= 1) { arrAcc -= 1; arrive(); }
+  for (const k in heat) heat[k] = Math.max(0, heat[k] - dt * 2.2 * D.cool);
+  for (const c of crew) stepCrew(c, dt);
+  for (const f of fx) f.t += dt; fx = fx.filter(f => f.t < f.life);
+  for (const d of deliveredFx) d.t += dt;
+  const h = Math.floor(hourOf(S.t)); if (h !== lastHour) { lastHour = h; if (h === 7 && S.t > 5) endDay(); else hourNews(h); }
+  chatT -= dt; if (chatT <= 0) { chatT = 7 + Math.random() * 8; const c = crew[Math.floor(Math.random() * crew.length)]; if (c && !c.sayT) say(c, CHAT[Math.floor(Math.random() * CHAT.length)]); }
+  saveT -= dt; if (saveT <= 0) { saveT = 5; save(); }
+}
+const HOURNEWS = { 9: '출근 시간. 메일이 몰려온다.', 12: '점심시간. 인간이 사진을 뒤진다.', 19: '저녁. 인간이 영상을 튼다.', 23: '밤이 깊었다. 인간이 아직 안 잔다.', 2: '새벽 두 시. 인간이 이상한 걸 검색한다.', 5: '새벽 다섯 시. 컴퓨터가 조용하다.' };
+function hourNews(h) { if (HOURNEWS[h]) ticker(HOURNEWS[h]); }
+function endDay() {
+  const T = S.today, tp = T.topics.length ? T.topics[Math.floor(Math.random() * T.topics.length)] : '아무것도 안 함';
+  $('rep').innerHTML = `<h2>오늘의 인간 · ${S.day}일째</h2>
+    <div class="row"><span>글</span><span>${T.text}개</span></div><div class="row"><span>사진</span><span>${T.photo}장</span></div><div class="row"><span>영상</span><span>${T.video}편</span></div>
+    <div class="row"><span>새로고침 당한 횟수</span><span>${T.refresh}번</span></div><div class="row"><span>번 비트</span><span>${Math.round(T.bits)}</span></div>
+    <p>오늘의 한 장면: 인간이 ${tp}.</p><p>인간 기분 ${Math.round(S.mood)} · ${moodWord()}</p><button type="button" id="repOk">Enter · 다음 날</button>`;
+  $('repOv').hidden = false; $('repOk').addEventListener('click', closeRep); $('repOk').focus();
+  S.day++; S.today = newToday(); save();
+}
+function closeRep() { $('repOv').hidden = true; }
+const moodWord = () => S.mood > 80 ? '흐뭇함' : S.mood > 60 ? '무난함' : S.mood > 40 ? '조금 답답함' : S.mood > 20 ? '한숨' : '키보드를 두드린다';
+
+// ───────── 그림 ─────────
+const C = { out: '#2b1d2c', shade: 'rgba(0,0,0,.18)', hi: 'rgba(255,255,255,.28)', eye: '#1b1420', ant: '#7fe0d0' };
+const sprCache = {};
+function critter(tint, frame) {
+  const key = tint + frame; if (sprCache[key]) return sprCache[key];
+  const s = 16, c = document.createElement('canvas'); c.width = s; c.height = s; const x = c.getContext('2d');
+  const px = (a, b, col) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); };
+  const legH = 2, top = 3, bot = s - legH - 1, cx = 7.5, rx = 6.4, ry = (bot - top) / 2 + 0.4, cy = top + ry - 0.4 + (frame ? 0.5 : 0);
+  const inside = (i, j) => ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2 <= 1;
+  for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { if (!inside(i, j)) continue; const edge = !inside(i - 1, j) || !inside(i + 1, j) || !inside(i, j - 1) || !inside(i, j + 1); px(i, j, edge ? C.out : tint); if (!edge && j > cy + ry * 0.35) px(i, j, C.shade); if (!edge && i < cx - 1 && j < cy - ry * 0.35) px(i, j, C.hi); }
+  const ey = Math.round(cy - 1); x.fillStyle = C.eye; x.fillRect(4, ey, 2, 3); x.fillRect(10, ey, 2, 3);
+  x.fillStyle = '#f08a7a'; x.fillRect(2, ey + 3, 1, 1); x.fillRect(13, ey + 3, 1, 1);
+  x.fillStyle = C.out; x.fillRect(8 + (frame ? 1 : 0), 0, 1, 3); px(8 + (frame ? 1 : 0), 0, C.ant);
+  x.fillStyle = C.out; x.fillRect(4, bot + 1, 2, frame === 0 ? 1 : 2); x.fillRect(10, bot + 1, 2, frame === 1 ? 1 : 2);
+  return (sprCache[key] = c);
+}
+function pkt(ctx, type, x, y) { const col = TYPES[type].col; ctx.fillStyle = C.out; ctx.fillRect(x - 3, y - 6, 7, 6); ctx.fillStyle = col; ctx.fillRect(x - 2, y - 5, 5, 4); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(x - 2, y - 2, 5, 1); if (type === 'video') { ctx.fillStyle = '#fff'; ctx.fillRect(x, y - 4, 1, 2); } }
+// 배경은 한 번만
+let BG;
+function buildBg() {
+  BG = document.createElement('canvas'); BG.width = W; BG.height = H; const x = BG.getContext('2d');
+  x.fillStyle = '#0f1424'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#18213a'; for (let k = 0; k < 60; k++) { const yy = (k * 41) % H, xx = (k * 67) % W; x.fillRect(xx, yy, 14, 1); x.fillRect(xx + 14, yy, 1, 6); x.fillRect(xx + 14, yy + 6, 3, 1); }
+  for (const [id, r] of Object.entries(ROOMS)) {
+    const y0 = TOP + r.f * FH + 2, h = FH - 5;
+    x.fillStyle = r.col; x.fillRect(r.x0 + 1, y0, r.x1 - r.x0 - 2, h);
+    x.fillStyle = r.lit; x.globalAlpha = .5; x.fillRect(r.x0 + 1, y0, r.x1 - r.x0 - 2, 1); x.globalAlpha = 1;
+    x.fillStyle = '#0a0d16'; x.fillRect(r.x0, TOP + (r.f + 1) * FH - 3, r.x1 - r.x0, 3);
+    x.fillStyle = 'rgba(255,255,255,.04)'; for (let xx = r.x0 + 4; xx < r.x1 - 4; xx += 8) x.fillRect(xx, y0 + 3, 1, h - 6);
+    // 방마다 소품
+    const fy = floorY(r.f);
+    if (id === 'mem') { x.fillStyle = '#4a4466'; for (let row = 0; row < 2; row++) x.fillRect(r.x0 + 20, fy - 15 - row * 10, 12 * 18 + 4, 2); }
+    if (id === 'inp') { x.fillStyle = '#1a1a1a'; x.fillRect(r.x0 + 10, fy - 10, r.x1 - r.x0 - 10, 4); x.fillStyle = '#7fe0d0'; x.fillRect(r.x1 - 12, fy - 14, 10, 10); x.fillStyle = '#22303a'; x.fillRect(r.x1 - 10, fy - 12, 6, 6); }
+    if (id === 'sto') { for (let k = 0; k < 6; k++) { x.fillStyle = k % 2 ? '#3a5a44' : '#335040'; x.fillRect(r.x0 + 150 + (k % 2) * 14, fy - 12 - Math.floor(k / 2) * 12, 12, 10); x.fillStyle = '#8fe0a0'; x.fillRect(r.x0 + 155 + (k % 2) * 14, fy - 8 - Math.floor(k / 2) * 12, 2, 1); } }
+    if (id === 'pwr') { x.fillStyle = '#4a4230'; x.fillRect(r.x0 + 20, fy - 30, 40, 30); x.fillStyle = '#ffe27a'; for (let k = 0; k < 4; k++) x.fillRect(r.x0 + 26 + k * 8, fy - 24, 4, 2); x.fillStyle = '#3a3428'; for (let k = 0; k < 5; k++) x.fillRect(r.x0 + 80 + k * 14, fy - 18, 8, 18); }
+    if (id === 'rest') { x.fillStyle = '#5a4a7a'; x.fillRect(r.x0 + 70, fy - 9, 34, 6); x.fillRect(r.x0 + 70, fy - 14, 4, 11); x.fillStyle = '#c8b8ff'; x.fillRect(r.x0 + 20, fy - 26, 10, 8); x.fillStyle = '#2c2a40'; x.fillRect(r.x0 + 22, fy - 24, 6, 4); }
+    if (id === 'out') { x.fillStyle = '#0a1220'; x.fillRect(r.x0 + 12, y0 + 6, r.x1 - r.x0 - 24, 26); x.fillStyle = '#8ac8ff'; x.globalAlpha = .4; x.fillRect(r.x0 + 12, y0 + 6, r.x1 - r.x0 - 24, 1); x.globalAlpha = 1; }
+  }
+  // 사다리
+  for (const sx of SHAFT) { x.fillStyle = '#5a5470'; x.fillRect(sx - 5, TOP + FH - 3, 1, FH * 3); x.fillRect(sx + 5, TOP + FH - 3, 1, FH * 3); for (let yy = TOP + FH; yy < TOP + FH * 4; yy += 5) x.fillRect(sx - 5, yy, 11, 1); }
+}
+function drawDesk(ctx, room, d, t) {
+  const fy = floorY(ROOMS[room].f), x = d.x, busy = !!d.by;
+  if (room === 'cpu') { ctx.fillStyle = '#5a4430'; ctx.fillRect(x - 9, fy - 9, 18, 9); ctx.fillStyle = '#2a1e16'; ctx.fillRect(x - 7, fy - 11, 14, 2); if (busy) { ctx.fillStyle = Math.sin(t * 20) > 0 ? '#ff8a3a' : '#ffd36a'; ctx.fillRect(x - 5, fy - 13, 3, 2); ctx.fillRect(x + 2, fy - 13, 3, 2); } }
+  else if (room === 'gpu') { ctx.fillStyle = '#6a4a3a'; ctx.fillRect(x - 1, fy - 22, 2, 22); ctx.fillRect(x - 7, fy - 2, 14, 2); ctx.fillStyle = '#f4f1ff'; ctx.fillRect(x - 7, fy - 22, 14, 11); if (busy) { const cs = ['#ff8ab8', '#8ac8ff', '#ffe27a', '#8fe0a0']; for (let k = 0; k < 4; k++) { ctx.fillStyle = cs[(k + Math.floor(t * 3)) % 4]; ctx.fillRect(x - 6 + k * 3, fy - 20 + (k % 2) * 4, 3, 3); } } }
+  else if (room === 'sto') { ctx.fillStyle = '#3a5a44'; ctx.fillRect(x - 8, fy - 16, 16, 16); ctx.fillStyle = '#26382c'; ctx.fillRect(x - 6, fy - 13, 12, 3); ctx.fillRect(x - 6, fy - 7, 12, 3); if (busy) { ctx.fillStyle = '#8fe0a0'; ctx.fillRect(x - 6, fy - 13 + (Math.floor(t * 4) % 2) * 6, 12, 1); } }
+  else if (room === 'out') { ctx.fillStyle = '#2a3a58'; ctx.fillRect(x - 6, fy - 6, 12, 6); }
+  else if (room === 'fan') { ctx.fillStyle = '#3a5060'; ctx.fillRect(x - 2, fy - 4, 4, 4); }
+}
+function drawFan(ctx, t) {
+  const r = ROOMS.fan, cx = r.x0 + 50, cy = TOP + r.f * FH + 22, a = t * 8 * D.cool;
+  ctx.fillStyle = '#1a2a36'; ctx.beginPath(); ctx.arc(cx, cy, 17, 0, 7); ctx.fill();
+  ctx.fillStyle = '#7fe0d0'; for (let k = 0; k < 4; k++) { const b = a + k * Math.PI / 2; for (let s = 3; s < 15; s++) ctx.fillRect(Math.round(cx + Math.cos(b) * s), Math.round(cy + Math.sin(b) * s), 2, 2); }
+  ctx.fillStyle = '#d0fff4'; ctx.fillRect(cx - 1, cy - 1, 3, 3);
+  ctx.fillStyle = 'rgba(127,224,208,.35)'; for (let k = 0; k < 8; k++) { const yy = cy - 14 + k * 4, xx = (r.x0 + ((t * 60 * D.cool + k * 23) % (r.x1 - r.x0))); ctx.fillRect(Math.round(xx), yy, 6, 1); }
+}
+function heatTint(ctx, room) { const h = heat[room]; if (!h) return; const r = ROOMS[room]; ctx.fillStyle = `rgba(255,80,50,${Math.min(0.35, h / 260)})`; ctx.fillRect(r.x0 + 1, TOP + r.f * FH + 2, r.x1 - r.x0 - 2, FH - 5); }
+function draw(ctx, t) {
+  ctx.drawImage(BG, 0, 0);
+  for (const k of ['cpu', 'gpu', 'sto']) heatTint(ctx, k);
+  // 잠긴 방
+  if (!D.types.includes('photo')) for (const k of ['gpu', 'sto']) { const r = ROOMS[k]; ctx.fillStyle = 'rgba(8,8,14,.72)'; ctx.fillRect(r.x0 + 1, TOP + r.f * FH + 2, r.x1 - r.x0 - 2, FH - 5); }
+  drawFan(ctx, t);
+  for (const k of ['cpu', 'sto', 'gpu', 'out', 'fan']) for (const d of desks[k]) drawDesk(ctx, k, d, t);
+  // 모니터 화면: 최근 내보낸 것들이 빛난다
+  const o = ROOMS.out, oy = TOP + o.f * FH + 8; deliveredFx.forEach((d, i) => { ctx.globalAlpha = Math.max(0.25, 1 - d.t / 30); ctx.fillStyle = d.col; ctx.fillRect(o.x0 + 14 + (i % 6) * 12, oy + Math.floor(i / 6) * 11, 10, 9); }); ctx.globalAlpha = 1;
+  // 입구 케이블 깜빡임
+  ctx.fillStyle = Math.sin(t * 6) > 0 ? '#7fe0d0' : '#3a7a70'; ctx.fillRect(ROOMS.inp.x0 + 10 + Math.floor((t * 40) % 70), floorY(3) - 9, 4, 2);
+  // 선반의 꾸러미
+  for (const p of shelf) { const [sx, sy] = slotXY(p.slot); pkt(ctx, p.type, sx, sy + 2); if (S.t - p.t0 > 45) { ctx.fillStyle = '#ff6a5a'; ctx.fillRect(sx - 1, sy - 9, 2, 2); } }
+  ctx.fillStyle = '#b8a8ff'; ctx.font = '8px Galmuri11'; // (글자는 HTML로)
+  // 꼬물이
+  for (const c of crew) {
+    const walking = c.wps.length > 0, fr = walking || c.climb ? Math.floor(t * 8 + c.ph) % 2 : (c.st === 'work' ? Math.floor(t * 6) % 2 : 0);
+    const img = critter(c.tint, fr), x = Math.round(c.x - 8), y = Math.round(c.y - 16);
+    if (c.face < 0) { ctx.save(); ctx.translate(x + 16, y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); } else ctx.drawImage(img, x, y);
+    if (c.pk && c.pk.carried) pkt(ctx, c.pk.type, Math.round(c.x), y + 1);
+    if (c.heat > 60) { ctx.fillStyle = '#8ac8ff'; ctx.fillRect(x + 13, y + 3 + Math.floor(t * 4 % 3), 1, 2); }
+    if (c.st === 'cool') { ctx.fillStyle = 'rgba(127,224,208,.6)'; ctx.fillRect(x + 2 + Math.floor(t * 10 % 12), y + 6, 2, 1); }
+    if (followIdx >= 0 && crew[followIdx] === c) { ctx.fillStyle = '#ffe27a'; ctx.fillRect(Math.round(c.x) - 1, y - 5, 3, 2); }
+  }
+  for (const f of fx) {
+    const q = f.t / f.life;
+    if (f.k === 'spark') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x + (Math.random() - .5) * 6), Math.round(f.y - q * 6), 1, 1); }
+    else if (f.k === 'lvl') { ctx.fillStyle = '#ffe27a'; for (let k = 0; k < 6; k++) ctx.fillRect(Math.round(f.x + Math.cos(k + q * 6) * 8 * q), Math.round(f.y + Math.sin(k + q * 6) * 8 * q), 1, 1); }
+    else if (f.k === 'zip') { ctx.fillStyle = '#7fe0d0'; ctx.fillRect(Math.round(f.x - q * 90), f.y, 6, 2); }
+    else if (f.k === 'bounce') { ctx.fillStyle = '#ff6a5a'; ctx.fillRect(Math.round(f.x + q * 40), Math.round(f.y - Math.sin(q * 3.14) * 10), 5, 5); }
+  }
+  if (boostT > 0) { ctx.fillStyle = 'rgba(255,226,122,.07)'; ctx.fillRect(0, 0, W, H); }
+}
+// 화면 = 전체 또는 2배 따라가기(16px 꼬물이가 32px로 보인다)
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), world = document.createElement('canvas'); world.width = W; world.height = H; const wctx = world.getContext('2d');
+let zoom = false, followIdx = -1, camX = W / 2, camY = H / 2;
+function present(t) {
+  draw(wctx, t);
+  ctx.imageSmoothingEnabled = false;
+  if (!zoom) { ctx.drawImage(world, 0, 0); return; }
+  const c = crew[followIdx] || crew[0], tx = c.x, ty = c.y - 10;
+  camX += (tx - camX) * 0.1; camY += (ty - camY) * 0.1;
+  const vw = W / 2, vh = H / 2, sx = Math.round(Math.max(0, Math.min(W - vw, camX - vw / 2))), sy = Math.round(Math.max(0, Math.min(H - vh, camY - vh / 2)));
+  ctx.drawImage(world, sx, sy, vw, vh, 0, 0, W, H);
+}
+
+// ───────── 화면 글 ─────────
+const $ = id => document.getElementById(id);
+function ticker(s) { $('ticker').innerHTML = `<b>방송</b> ${s}`; }
+function log(s) { ticker(s); }
+const fmt = n => Math.floor(n).toLocaleString('ko-KR');
+const DOING = { idle: '쉬는 중', fetch: '꾸러미 집는 중', go: '이동 · 줄', walkDesk: '자리로', work: '일하는 중', waitCool: '식히러', goCool: '식히러', cool: '팬 앞' };
+function renderHud() {
+  const h = hourOf(S.t), hh = Math.floor(h), mm = Math.floor((h - hh) * 60);
+  $('bits').textContent = fmt(S.bits) + ' 비트';
+  $('clock').textContent = `${S.day}일째 ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  $('mood').textContent = `인간 기분 ${Math.round(S.mood)} · ${moodWord()}`;
+  $('osd').textContent = `메모리 ${shelf.length}/${D.mem} · CPU ${Math.round(heat.cpu)}° · GPU ${Math.round(heat.gpu)}°`;
+  const c = crew[followIdx]; $('osd2').textContent = zoom && c ? `${c.name} Lv.${c.lvl} · ${DOING[c.st] || ''}${c.pk ? ' · ' + TYPES[c.pk.type].n : ''}` : (boostT > 0 ? `클럭 부스트 ${Math.ceil(boostT)}초` : '');
+  const b = $('aBoost'); b.className = boostT > 0 ? 'on' : S.boostCd <= 0 ? 'ready' : ''; b.innerHTML = `<kbd>Space</kbd>클럭 부스트${S.boostCd > 0 && boostT <= 0 ? ' ' + Math.ceil(S.boostCd) + '초' : ''}`;
+  const f = $('aCool'); f.hidden = !D.skills.cool; f.className = S.coolCd <= 0 ? 'ready' : ''; f.innerHTML = `<kbd>F</kbd>냉각 숨결${S.coolCd > 0 ? ' ' + Math.ceil(S.coolCd) + '초' : ''}`;
+  $('aZoom').className = zoom ? 'on' : '';
+}
+function renderCrew() {
+  const box = $('crew'); box.querySelectorAll('button').forEach(b => b.remove());
+  crew.forEach((c, i) => { const b = document.createElement('button'); b.type = 'button'; b.dataset.i = i; b.innerHTML = `<span>${c.name}</span><span>Lv.${c.lvl}</span><span class="hb"><i></i></span><span class="st"></span>`; b.addEventListener('click', () => { followIdx = i; zoom = true; }); box.append(b); });
+}
+function tickCrew() { $('crew').querySelectorAll('button').forEach(b => { const c = crew[+b.dataset.i]; b.classList.toggle('sel', zoom && followIdx === +b.dataset.i); b.children[1].textContent = 'Lv.' + c.lvl; b.querySelector('i').style.width = Math.round(c.heat) + '%'; b.querySelector('.st').textContent = c.heat > 60 ? '뜨거움' : DOING[c.st] || ''; }); }
+let quickKey = '';
+const avail = n => !S.owned[n.id] && (!n.prev || S.owned[n.prev]);
+const ready = n => avail(n) && S.bits >= n.cost;
+function renderQuick() {
+  const list = NLIST.filter(ready).sort((a, b) => a.cost - b.cost).slice(0, 3), next = NLIST.filter(n => avail(n) && !ready(n)).sort((a, b) => a.cost - b.cost)[0];
+  const key = list.map(n => n.id).join() + '|' + (next ? next.id : ''); if (key === quickKey) return; quickKey = key;
+  const box = $('quick'); box.innerHTML = '';
+  list.forEach((n, k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'qb' + (k ? '' : ' first'); b.innerHTML = `<b></b><em>${fmt(n.cost)} 비트</em><i></i>`; b.querySelector('b').textContent = (k ? '' : 'Q · ') + n.n; b.querySelector('i').textContent = n.d; b.onclick = () => buy(n); box.append(b); });
+  if (next && next.cost < 1e11) { const p = document.createElement('div'); p.className = 'qempty'; p.textContent = `${list.length ? '그다음' : '다음'}: ${next.n} · ${fmt(next.cost)} 비트`; box.append(p); }
+}
+function renderTree() {
+  const cols = $('cols'); cols.innerHTML = '';
+  COLS.forEach((nm, ci) => { const col = document.createElement('div'); col.className = 'col'; col.innerHTML = `<h3>${nm}</h3>`; NLIST.filter(n => n.col === ci).forEach(n => { const b = document.createElement('button'); b.type = 'button'; const own = S.owned[n.id]; b.className = 'node ' + (own ? 'own' : ready(n) ? 'can' : 'lock'); b.innerHTML = '<b></b><i></i><em></em>'; b.querySelector('b').textContent = n.n; b.querySelector('i').textContent = n.d; b.querySelector('em').textContent = own ? '갖춤' : n.cost >= 1e11 ? '다음 시즌' : fmt(n.cost) + ' 비트' + (avail(n) ? '' : ' · 위 먼저'); b.onclick = () => { if (buy(n)) renderTree(); }; col.append(b); }); cols.append(col); });
+  $('treeInfo').textContent = `지금 ${fmt(S.bits)} 비트 · T/Esc 닫기`;
+}
+function buy(n) {
+  if (!ready(n) || n.cost >= 1e11) return false;
+  S.bits -= n.cost; S.owned[n.id] = 1; D = derive(); rebuildDesks();
+  if (n.e.hire) { const c = { i: S.crew.length, xp: 0, lvl: 1 }; S.crew.push(c); addCrew(c); renderCrew(); ticker(`새 꼬물이 <b>${crew[crew.length - 1].name}</b>가 전원부 틈에서 기어 나왔다.`); }
+  else if (n.e.type) ticker(`인간이 ${TYPES[n.e.type].n}${n.e.type === 'photo' ? '을' : '을'} 보기 시작했다.`);
+  else ticker(`${n.n} 갖춤.`);
+  quickKey = ''; renderQuick(); save(); return true;
+}
+function buyBest() { const n = NLIST.filter(ready).sort((a, b) => a.cost - b.cost)[0]; if (n) buy(n); if (!$('treeOv').hidden) renderTree(); }
+function boost() { if (S.boostCd > 0) return; boostT = 15; S.boostCd = 45; ticker('클럭 부스트! 다들 두 배로 빨라진다. 대신 더 뜨거워진다.'); }
+function coolAll() { if (!D.skills.cool || S.coolCd > 0) return; S.coolCd = 60; for (const k in heat) heat[k] = 0; for (const c of crew) c.heat = Math.min(c.heat, 10); ticker('냉각 숨결. 컴퓨터 안에 시원한 바람이 분다.'); for (let k = 0; k < 30; k++) fx.push({ k: 'spark', x: Math.random() * W, y: Math.random() * H, t: 0, life: .6, col: '#7fe0d0' }); }
+function toggleTree(v) { const o = $('treeOv'); o.hidden = v === undefined ? !o.hidden : !v; if (!o.hidden) renderTree(); }
+function nextFollow() { followIdx = (followIdx + 1) % crew.length; zoom = true; }
+
+addEventListener('keydown', e => {
+  if (!$('repOv').hidden) { if (['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); closeRep(); } return; }
+  const k = e.key.toLowerCase();
+  if (e.code === 'Space') { e.preventDefault(); boost(); }
+  else if (k === 'f' || k === 'ㄹ') coolAll();
+  else if (k === 'q' || k === 'ㅂ') buyBest();
+  else if (k === 'z' || k === 'ㅋ') { zoom = !zoom; if (zoom && followIdx < 0) followIdx = 0; }
+  else if (k === 'c' || k === 'ㅊ') nextFollow();
+  else if (k === 't' || k === 'ㅅ' || e.key === 'Tab') { e.preventDefault(); toggleTree(); }
+  else if (e.key === 'Escape') { if (!$('treeOv').hidden) toggleTree(false); else zoom = false; }
+});
+$('aBoost').onclick = boost; $('aCool').onclick = coolAll; $('aZoom').onclick = () => { zoom = !zoom; if (zoom && followIdx < 0) followIdx = 0; }; $('aNext').onclick = nextFollow; $('aBuy').onclick = buyBest; $('aTree').onclick = () => toggleTree(true); $('openTree').onclick = () => toggleTree(true);
+$('treeOv').onclick = e => { if (e.target === $('treeOv')) toggleTree(false); };
+cv.addEventListener('click', e => {
+  const r = cv.getBoundingClientRect(); let x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+  if (zoom) { zoom = false; return; }
+  let best = -1, bd = 400; crew.forEach((c, i) => { const d = (c.x - x) ** 2 + (c.y - 8 - y) ** 2; if (d < bd) { bd = d; best = i; } });
+  if (best >= 0) { followIdx = best; zoom = true; }
+});
+
+// 밸런스 확인용: window.__sim(초, 매초 Q)
+let SIM = false;
+window.__sim = sec => { SIM = true; const dt = 0.1, out = []; for (let k = 0; k < sec / dt; k++) { step(dt); if (k % 10 === 0) { buyBest(); if (S.boostCd <= 0) boost(); coolAll(); } if (k % 600 === 0) out.push(`${Math.round(S.t / 60)}m bits${Math.round(S.bits)} owned${Object.keys(S.owned).length} mood${Math.round(S.mood)} shelf${shelf.length} crew${crew.length}`); } SIM = false; $('repOv').hidden = true; return out.join('\n'); };
+
+buildBg(); renderCrew();
+ticker('인간이 컴퓨터를 켰다. 꼬물이들이 기지개를 켠다.');
+let last = performance.now(), crewT = 0;
+function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; if ($('repOv').hidden) step(dt); present(now / 1000); renderHud(); renderQuick(); crewT -= dt; if (crewT <= 0) { crewT = 0.25; tickCrew(); } requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+</script>
