@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 @font-face { font-family: "Galmuri11"; src: url(data:font/woff2;base64,__FONT__) format("woff2"); font-display: block; }
-/* 위에서 본 사무실 바닥 한 장 + 위 줄 상태, 아래 방송 띠와 하루 보고. 방 이름은 캔버스 위 HTML 글자로. */
+/* 타일 격자 회로판: 위 상태 줄, 가운데 판(16×9칸), 아래 도구·방송·하루 보고. 방 이름과 설정 창은 판 위 HTML. */
 :root {
   --bg: #12101a; --panel: #1c1928; --line: #363049; --fg: #ece6f5; --dim: #9a93ad;
   --acc: #7fe0d0; --warm: #f2b46d; --hot: #ff6a5a; --paper: #e9e2cc; --ink: #2a2338; --inkdim: #6b6258;
@@ -15,28 +15,40 @@ html, body { margin: 0; }
 body { background: var(--bg); color: var(--fg); font: 13px/1.5 var(--f); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; -webkit-font-smoothing: none; }
 button { font: inherit; color: inherit; }
 button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
-.wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 10px; }
+.wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 8px; }
 header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 6px 16px; }
 h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-variant-numeric: tabular-nums; }
 .stats span { color: var(--dim); }
 .stats b { color: var(--acc); font-weight: 400; }
 .stats .mood { color: var(--warm); }
-.screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 384 / 208; max-width: 100%; }
-.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.daybar { height: 4px; background: var(--panel); }
+.daybar i { display: block; height: 100%; background: var(--acc); width: 0; }
+.screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 16 / 9; max-width: 100%; }
+.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none; }
 .labels { position: absolute; inset: 0; pointer-events: none; }
-.lab { position: absolute; transform: translate(-50%, -50%); font-size: 11px; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000; white-space: nowrap; text-align: center; line-height: 1.2; }
-.lab small { display: block; font-size: 10px; color: var(--hot); }
-.mode { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); background: var(--warm); color: var(--ink); padding: 1px 10px; font-size: 12px; pointer-events: none; }
+.lab { position: absolute; transform: translate(-50%, 0); font-size: 10px; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; white-space: nowrap; line-height: 1.1; }
+.badge { position: absolute; transform: translate(-50%, -100%); background: var(--hot); color: #fff; font-size: 10px; padding: 0 4px; white-space: nowrap; }
+.badge.q { background: var(--warm); color: var(--ink); }
+.mode { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); background: var(--warm); color: var(--ink); padding: 0 10px; font-size: 12px; pointer-events: none; white-space: nowrap; }
+.pop { position: absolute; background: var(--paper); color: var(--ink); padding: 8px 10px; font-size: 12px; display: grid; gap: 6px; z-index: 5; min-width: 160px; box-shadow: 0 4px 0 rgba(0,0,0,.4); }
+.pop b { font-weight: 400; font-size: 13px; }
+.pop .row { display: flex; flex-wrap: wrap; gap: 4px; }
+.pop button { background: #d9d0b4; border: 1px solid var(--inkdim); padding: 1px 6px; cursor: pointer; color: var(--ink); }
+.pop button.on { background: var(--ink); color: var(--paper); }
+.pop i { font-style: normal; color: var(--inkdim); }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tools button { background: var(--panel); border: 1px solid var(--line); padding: 3px 10px; cursor: pointer; color: var(--dim); }
+.tools button.on { border-color: var(--acc); color: var(--fg); }
+.tools kbd { font: inherit; color: var(--fg); border: 1px solid var(--line); padding: 0 4px; margin-right: 4px; }
+.tools .inv { color: var(--dim); font-size: 12px; margin-left: auto; }
+.tools .inv b { color: var(--fg); font-weight: 400; }
 .ticker { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; white-space: nowrap; overflow: hidden; color: var(--dim); }
 .ticker b { color: var(--fg); font-weight: 400; }
-.acts { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--dim); font-size: 12px; align-items: center; }
-.acts button { background: var(--panel); border: 1px solid var(--line); padding: 3px 10px; cursor: pointer; color: var(--fg); }
-.acts kbd { font: inherit; color: var(--fg); border: 1px solid var(--line); padding: 0 4px; margin-right: 4px; }
-.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--dim); }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: var(--dim); }
 .legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; vertical-align: -1px; border: 1px solid #000; }
 .ov { position: fixed; inset: 0; background: rgba(10,8,18,.8); display: grid; place-items: center; z-index: 20; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
-.report { background: var(--paper); color: var(--ink); width: min(560px, 100%); padding: 16px 18px; display: grid; gap: 8px; max-height: 100%; overflow: auto; }
+.report { background: var(--paper); color: var(--ink); width: min(560px, 100%); padding: 14px 18px; display: grid; gap: 6px; max-height: 100%; overflow: auto; }
 .report h2 { margin: 0; font-size: 18px; font-weight: 400; }
 .report .row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--inkdim); font-variant-numeric: tabular-nums; }
 .report p { margin: 0; color: var(--inkdim); }
@@ -46,182 +58,205 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .card:hover { background: #fff6dc; }
 .card b { font-weight: 400; font-size: 14px; }
 .card i { font-style: normal; font-size: 12px; color: var(--inkdim); }
-.help { font-size: 12px; color: var(--dim); margin: 0; max-width: 80ch; }
+.help { font-size: 12px; color: var(--dim); margin: 0; max-width: 84ch; }
 @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
 </style>
 
 <div class="wrap">
   <header>
     <h1>꼬물이 에이전트 회사</h1>
-    <div class="stats"><span id="day">1일째</span><span id="left"></span><span>처리 <b id="done">0</b></span><span class="mood" id="mood">인간 기분 70</span></div>
+    <div class="stats"><span id="day">1일째</span><span>처리 <b id="done">0</b></span><span class="mood" id="mood">인간 기분 70</span></div>
   </header>
-  <div class="screen"><canvas id="cv" width="384" height="208"></canvas><div class="labels" id="labels"></div><div class="mode" id="mode" hidden></div></div>
-  <div class="ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div>
-  <div class="acts">
-    <button type="button" id="pause"><kbd>Space</kbd>멈춤</button>
-    <span>방을 누르면 들어서 옮길 수 있습니다(옮기는 동안 시간이 멈춤). 다시 누르면 내려놓습니다. 우클릭이나 Esc는 취소.</span>
+  <div class="daybar"><i id="dayFill"></i></div>
+  <div class="screen" id="screen"><canvas id="cv" width="384" height="216"></canvas><div class="labels" id="labels"></div><div class="mode" id="mode" hidden></div><div class="pop" id="pop" hidden></div></div>
+  <div class="tools">
+    <button type="button" id="tSel" class="on"><kbd>S</kbd>고르기</button>
+    <button type="button" id="tRoad"><kbd>R</kbd>길 깔기</button>
+    <button type="button" id="tErase"><kbd>E</kbd>길 지우기</button>
+    <button type="button" id="tPause"><kbd>Space</kbd>멈춤</button>
+    <span class="inv" id="inv"></span>
   </div>
+  <div class="ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div>
   <div class="legend" id="legend"></div>
-  <p class="help">인간의 요청이 왼쪽 접수함에 쌓입니다. 꼬물이가 요청을 하나 들고, 그 요청에 필요한 방을 차례로 돌며 일한 뒤 오른쪽 발송구로 보냅니다. 검수대에서 틀린 게 나오면 앞 단계로 되돌아갑니다. 방이 멀거나 한 방에 일이 몰리면 줄이 섭니다. 하루가 끝나면 가장 막힌 곳을 알려 주고, 카드 두 장 중 하나를 고릅니다.</p>
+  <p class="help">꼬물이는 <b>길</b> 위로만 다닙니다. 인간의 요청은 처음엔 무슨 일인지 모르는 회색 꾸러미로 접수함에 쌓이고, <b>분류대</b>를 거쳐야 종류(색)가 정해집니다. 그 뒤 종류마다 정해진 방을 차례로 돌고 발송구로 나갑니다. 방을 누르면 그 방이 받을 요청 종류를 고르거나 옮길 수 있습니다. 하루는 1분이고, 끝나면 가장 막힌 곳을 알려 주고 카드 두 장 중 하나를 고릅니다.</p>
 </div>
 <div class="ov" id="repOv" hidden><div class="report" role="dialog" aria-label="하루 보고" id="rep"></div></div>
 
 <script>
 'use strict';
 // ───────── 표 ─────────
-const T = 16, GW = 24, GH = 13, W = GW * T, H = GH * T;
+const T = 24, GW = 16, GH = 9, W = GW * T, H = GH * T, DAY = 60;
 const KINDS = {
-  in:     { n: '접수함', col: '#4a6a8a', top: '#8ac8ff', work: 0 },
-  out:    { n: '발송구', col: '#3a6a5a', top: '#7fe0d0', work: 0 },
-  search: { n: '검색실', col: '#3e4a7a', top: '#9ab0ff', work: 2.4 },
-  write:  { n: '작성실', col: '#6a5a3a', top: '#ffd38a', work: 3.0 },
-  draw:   { n: '그림실', col: '#6a3a5a', top: '#ff9ad0', work: 4.0 },
-  calc:   { n: '계산실', col: '#5a5a2a', top: '#f0e070', work: 2.4 },
-  qa:     { n: '검수대', col: '#5a3a3a', top: '#ff8a7a', work: 1.4 },
+  in:     { n: '접수함', col: '#3e5878', top: '#8ac8ff', work: 0 },
+  out:    { n: '발송구', col: '#335a4c', top: '#7fe0d0', work: 0 },
+  sort:   { n: '분류대', col: '#4a4466', top: '#c8b8ff', work: 0.8 },
+  search: { n: '검색실', col: '#34406a', top: '#9ab0ff', work: 2.0 },
+  write:  { n: '작성실', col: '#5e5032', top: '#ffd38a', work: 2.4 },
+  draw:   { n: '그림실', col: '#5e3450', top: '#ff9ad0', work: 3.0 },
+  calc:   { n: '계산실', col: '#545228', top: '#f0e070', work: 2.0 },
+  qa:     { n: '검수대', col: '#583434', top: '#ff8a7a', work: 1.1 },
 };
-// 요청: 실제 일의 순서(찾기 → 만들기 → 확인)를 그대로
 const REQ = {
   ask:    { n: '질문', col: '#8ac8ff', route: ['search', 'write', 'qa'], day: 1, say: ['"이거 왜 안 돼?"', '"점심 뭐 먹지"', '"이메일 좀 다듬어 줘"', '"이 단어 뜻이 뭐야"'] },
   pic:    { n: '그림', col: '#ff9ad0', route: ['search', 'draw', 'qa'], day: 2, say: ['"고양이 그려 줘"', '"발표 표지 만들어 줘"', '"이 사진 배경 지워 줘"'] },
   num:    { n: '계산', col: '#f0e070', route: ['calc', 'qa'], day: 3, say: ['"이번 달 가계부 정리"', '"더치페이 계산해 줘"', '"이 표 합계 내 줘"'] },
   report: { n: '보고서', col: '#8fe0a0', route: ['search', 'calc', 'write', 'qa'], day: 4, say: ['"내일까지 보고서..."', '"시장 조사 좀 해 줘"', '"회의 자료 만들어 줘"'] },
 };
-const DAY = 150;           // 하루 = 2분 30초(시제품)
-const NAMES = ['꼬미', '물이', '삑이', '도리', '콩이', '비트', '바이', '클로', '모리', '찌리', '토리', '나노'];
-const TINTS = ['#f2b46d', '#9fd88a', '#8ac8ff', '#f2a0c8', '#e8d870', '#c8a8ff', '#ff9a6a', '#7fe0d0', '#f4f1ff', '#d8b890', '#b0e0ff', '#ffc0a0'];
+const NEWROOM = { 2: 'draw', 3: 'calc' };
+const NAMES = ['꼬미', '물이', '삑이', '도리', '콩이', '비트', '바이', '클로', '모리', '찌리', '토리', '나노', '포포', '두두'];
+const TINTS = ['#f2b46d', '#9fd88a', '#8ac8ff', '#f2a0c8', '#e8d870', '#c8a8ff', '#ff9a6a', '#7fe0d0', '#f4f1ff', '#d8b890', '#b0e0ff', '#ffc0a0', '#a0f0c0', '#ffb0d8'];
 
 // ───────── 상태 ─────────
-let mods = [], crew = [], inbox = [], tickets = [], fx = [];
-let S = { day: 1, t: 0, done: 0, mood: 70, qaFail: 0.22, walk: 1, inboxCap: 10, paused: false, inDay: true };
-let dayStat;
-function newDayStat() { return { done: 0, wait: 0, fails: 0, overflow: 0, qwait: {} }; }
-dayStat = newDayStat();
-let uid = 0;
-function addMod(kind, x, y) { const m = { id: uid++, kind, x, y, busy: null, queue: [], fixed: kind === 'in' || kind === 'out' }; mods.push(m); return m; }
-addMod('in', 0, 5); addMod('out', 22, 5);
-addMod('search', 6, 2); addMod('write', 12, 6); addMod('qa', 17, 3);
-function addCrew() { const i = crew.length; const d = door(mods[0]); crew.push({ i, name: NAMES[i % NAMES.length], tint: TINTS[i % TINTS.length], x: (d[0] + 1) * T + 8, y: (d[1]) * T + 10, tx: 0, ty: 0, path: [], st: 'idle', tk: null, mod: null, wt: 0, face: 1, ph: Math.random() * 6, idleT: 0 }); }
-
-// ───────── 격자와 길 ─────────
-const door = m => [m.x, m.y + 2];                    // 방(2×2) 왼쪽 아래 바로 밑 칸
-let block;
-function rebuildBlock() { block = new Uint8Array(GW * GH); for (const m of mods) if (!m.lifted) for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) block[(m.y + dy) * GW + m.x + dx] = 1; }
-rebuildBlock();
+const S = { day: 1, t: 0, done: 0, mood: 70, qaFail: 0.2, walk: 1, inboxCap: 10, roads: 0, paused: false, inDay: true };
+const road = new Uint8Array(GW * GH);       // 1 = 길
+let sts = [], crew = [], inbox = [], fx = [], uid = 0, dayStat = newDayStat();
+function newDayStat() { return { done: 0, wait: 0, fails: 0, overflow: 0, qwait: {}, stuck: {} }; }
+const at = (x, y) => sts.find(s => !s.held && s.x === x && s.y === y);
+const inb = (x, y) => x >= 0 && y >= 0 && x < GW && y < GH;
+function addSt(kind, x, y) { const s = { id: uid++, kind, x, y, busy: null, queue: [], accept: null, fixed: kind === 'in' || kind === 'out' }; sts.push(s); return s; }
+// 처음 판: 가운데 길 한 줄과 방 몇 개(모두 옮길 수 있음)
+addSt('in', 0, 4); addSt('out', 15, 4);
+for (let x = 1; x <= 14; x++) road[4 * GW + x] = 1;
+addSt('sort', 2, 3); addSt('search', 5, 3); addSt('write', 8, 5); addSt('qa', 11, 3);
+S.roads = 30 - 14;
+function addCrew() { const i = crew.length; crew.push({ i, name: NAMES[i % NAMES.length], tint: TINTS[i % TINTS.length], x: (2 + i % 10) * T + 12, y: 4 * T + 18, path: [], fin: null, st: 'idle', tk: null, s: null, wt: 0, face: 1, ph: Math.random() * 6, idleT: Math.random() * 2, bub: '' }); }
 for (let k = 0; k < 6; k++) addCrew();
+
+// ───────── 길 찾기: 길 칸만 지나고, 마지막 한 칸(방)에만 들어간다 ─────────
 function bfs(sx, sy, tx, ty) {
   if (sx === tx && sy === ty) return [];
-  const prev = new Int16Array(GW * GH).fill(-1), q = [sy * GW + sx]; prev[q[0]] = q[0];
+  const prev = new Int16Array(GW * GH).fill(-1), s0 = sy * GW + sx, goal = ty * GW + tx, q = [s0]; prev[s0] = s0;
   for (let h = 0; h < q.length; h++) {
     const c = q[h], cx = c % GW, cy = (c / GW) | 0;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue; const n = ny * GW + nx;
-      if (prev[n] >= 0 || (block[n] && n !== ty * GW + tx)) continue; prev[n] = c;
-      if (nx === tx && ny === ty) { const out = []; let k = n; while (k !== sy * GW + sx) { out.push([k % GW, (k / GW) | 0]); k = prev[k]; } return out.reverse(); }
+      const nx = cx + dx, ny = cy + dy; if (!inb(nx, ny)) continue; const n = ny * GW + nx;
+      if (prev[n] >= 0) continue; if (n !== goal && !road[n]) continue; prev[n] = c;
+      if (n === goal) { const out = []; let k = n; while (k !== s0) { out.push([k % GW, (k / GW) | 0]); k = prev[k]; } return out.reverse(); }
       q.push(n);
     }
   }
   return null;
 }
-const tileOf = c => [Math.max(0, Math.min(GW - 1, Math.floor(c.x / T))), Math.max(0, Math.min(GH - 1, Math.floor((c.y - 2) / T)))];
-function goTo(c, m) {
-  const [sx, sy] = tileOf(c), [tx, ty] = door(m), p = bfs(sx, sy, tx, ty);
-  c.mod = m; c.path = p || []; if (!p) c.path = [[tx, ty]];
-}
-function pathLen(c, m) { const [sx, sy] = tileOf(c), [tx, ty] = door(m); const p = bfs(sx, sy, tx, ty); return p ? p.length : 999; }
-
-// ───────── 일의 흐름 ─────────
-function pickMod(c, kind) {
-  let best = null, bs = 1e9;
-  for (const m of mods) if (m.kind === kind && !m.lifted) { const s = pathLen(c, m) / (3 * S.walk) + (m.queue.length + (m.busy ? 1 : 0)) * KINDS[kind].work; if (s < bs) { bs = s; best = m; } }
+const tileOf = c => [Math.max(0, Math.min(GW - 1, Math.floor(c.x / T))), Math.max(0, Math.min(GH - 1, Math.floor((c.y - 6) / T)))];
+const center = (x, y) => [x * T + 12, y * T + 18];
+const accepts = (s, type) => !s.accept || !type || s.accept.has(type);
+function route(c, s) { const [sx, sy] = tileOf(c); const p = bfs(sx, sy, s.x, s.y); if (!p) return false; c.fin = p.pop() || [s.x, s.y]; c.path = p; c.s = s; return true; }
+function pickSt(c, kind) {
+  const [sx, sy] = tileOf(c); let best = null, bs = 1e9;
+  for (const s of sts) if (!s.held && s.kind === kind && accepts(s, c.tk && c.tk.type)) { const p = bfs(sx, sy, s.x, s.y); if (!p) continue; const sc = p.length / (2.6 * S.walk) + (s.queue.length + (s.busy ? 1 : 0)) * KINDS[kind].work; if (sc < bs) { bs = sc; best = s; } }
   return best;
 }
-function nextStep(c) {
-  const tk = c.tk, route = REQ[tk.type].route;
-  const kind = tk.step < route.length ? route[tk.step] : 'out';
-  const m = pickMod(c, kind);
-  if (!m) { c.st = 'stuck'; c.need = kind; return; }
-  c.st = 'walk'; goTo(c, m);
+
+// ───────── 일의 흐름 ─────────
+function nextKind(tk) { if (!tk.type) return 'sort'; const r = REQ[tk.type].route; return tk.step < r.length ? r[tk.step] : 'out'; }
+function goNext(c) {
+  const kind = nextKind(c.tk), s = pickSt(c, kind);
+  if (!s) { c.st = 'stuck'; c.need = kind; c.bub = '?'; dayStat.stuck[kind] = (dayStat.stuck[kind] || 0) + 1; if (Math.random() < 0.3) ticker(`<b>${c.name}</b> ${KINDS[kind].n}로 가는 길이 없어요.`); return; }
+  c.bub = ''; c.st = 'walk'; route(c, s);
 }
-function arrive(c) {
-  const m = c.mod;
-  if (m.kind === 'in') { const tk = inbox.find(t => t.by === c); if (!tk) { c.st = 'idle'; return; } inbox.splice(inbox.indexOf(tk), 1); c.tk = tk; tk.carried = true; nextStep(c); return; }
-  if (m.kind === 'out') { deliver(c); return; }
-  if (!m.busy) { m.busy = c; c.st = 'work'; c.wt = KINDS[m.kind].work; }
-  else { if (!m.queue.includes(c)) m.queue.push(c); c.st = 'queue'; c.qT = 0; }
+// 방 바로 앞 길 칸에 도착: 방이 비면 들어가고, 아니면 그 자리에서 줄
+function atDoor(c) {
+  const s = c.s;
+  if (!s || s.held) { c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; return; }
+  if (s.kind === 'in') { const tk = inbox.find(t => t.by === c); if (!tk) { c.st = 'idle'; return; } inbox.splice(inbox.indexOf(tk), 1); c.tk = tk; c.path = [c.fin]; c.st = 'enter'; return; }
+  if (s.kind === 'out') { c.path = [c.fin]; c.st = 'enter'; return; }
+  if (!s.busy) { s.busy = c; c.path = [c.fin]; c.st = 'enter'; }
+  else { if (!s.queue.includes(c)) s.queue.push(c); c.st = 'queue'; }
 }
-function finishWork(c) {
-  const m = c.mod, tk = c.tk; m.busy = null;
-  if (m.kind === 'qa' && Math.random() < S.qaFail) { tk.step = Math.max(0, tk.step - 1); tk.fails++; dayStat.fails++; fx.push({ k: 'x', x: c.x, y: c.y - 18, t: 0, life: 1 }); if (Math.random() < 0.5) ticker(`<b>${c.name}</b> 검수에서 틀린 걸 찾았다. ${KINDS[REQ[tk.type].route[tk.step]].n}로 되돌아간다.`); }
+function inside(c) {
+  const s = c.s;
+  if (s.kind === 'in') { c.path = []; c.st = 'leave'; c.after = 'next'; return; }
+  if (s.kind === 'out') { deliver(c); return; }
+  c.st = 'work'; c.wt = KINDS[s.kind].work;
+}
+function finish(c) {
+  const s = c.s, tk = c.tk; s.busy = null;
+  if (s.kind === 'sort') { tk.type = tk.hidden; fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .6, col: REQ[tk.type].col }); }
+  else if (s.kind === 'qa' && Math.random() < S.qaFail) { tk.step = Math.max(0, tk.step - 1); dayStat.fails++; fx.push({ k: 'x', x: c.x, y: c.y - 20, t: 0, life: 1 }); }
   else tk.step++;
-  if (m.queue.length) { const n = m.queue.shift(); m.busy = n; n.st = 'work'; n.wt = KINDS[m.kind].work; }
-  nextStep(c);
+  if (s.queue.length) { const n = s.queue.shift(); s.busy = n; n.path = [n.fin]; n.st = 'enter'; }
+  goNext(c);
 }
 function deliver(c) {
   const tk = c.tk, wait = S.t - tk.t0;
   S.done++; dayStat.done++; dayStat.wait += wait;
-  S.mood = Math.max(0, Math.min(100, S.mood + (wait < 25 ? 1.2 : wait < 45 ? 0.2 : -1.5)));
-  fx.push({ k: 'ok', x: c.x, y: c.y - 18, t: 0, life: 0.8, col: REQ[tk.type].col });
-  c.tk = null; c.st = 'idle'; c.idleT = 0;
+  S.mood = Math.max(0, Math.min(100, S.mood + (wait < 18 ? 1.2 : wait < 32 ? 0.2 : -1.5)));
+  fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .8, col: REQ[tk.type].col });
+  c.tk = null; c.s = null; c.st = 'idle'; c.idleT = 0;
 }
 function stepCrew(c, dt) {
   c.ph += dt;
+  if (c.st === 'queue') { dayStat.qwait[c.s.kind] = (dayStat.qwait[c.s.kind] || 0) + dt; return; }
   if (c.path.length) {
-    const [tx, ty] = c.path[0], px = tx * T + 8, py = ty * T + 12, dx = px - c.x, dy = py - c.y, d = Math.hypot(dx, dy), v = 48 * S.walk * dt;
-    if (Math.abs(dx) > 0.5) c.face = dx > 0 ? 1 : -1;
-    if (d <= v) { c.x = px; c.y = py; c.path.shift(); if (!c.path.length && c.st === 'walk') arrive(c); } else { c.x += dx / d * v; c.y += dy / d * v; }
+    const [tx, ty] = c.path[0], [px, py] = center(tx, ty), dx = px - c.x, dy = py - c.y, d = Math.hypot(dx, dy), v = 62 * S.walk * dt;
+    if (Math.abs(dx) > .5) c.face = dx > 0 ? 1 : -1;
+    if (d <= v) { c.x = px; c.y = py; c.path.shift(); if (!c.path.length) { if (c.st === 'walk') atDoor(c); else if (c.st === 'enter') inside(c); } }
+    else { c.x += dx / d * v; c.y += dy / d * v; }
     return;
   }
-  if (c.st === 'walk') { arrive(c); return; }
-  if (c.st === 'work') { c.wt -= dt; if (Math.random() < dt * 4) fx.push({ k: 'spark', x: c.x + (Math.random() - .5) * 10, y: c.y - 14, t: 0, life: .4, col: KINDS[c.mod.kind].top }); if (c.wt <= 0) finishWork(c); return; }
-  if (c.st === 'queue') { c.qT += dt; dayStat.qwait[c.mod.kind] = (dayStat.qwait[c.mod.kind] || 0) + dt; return; }
-  if (c.st === 'stuck') { const m = pickMod(c, c.need); if (m) { c.st = 'walk'; goTo(c, m); } return; }
+  if (c.st === 'walk') { atDoor(c); return; }
+  if (c.st === 'enter') { inside(c); return; }
+  if (c.st === 'leave') { goNext(c); return; }
+  if (c.st === 'work') { c.wt -= dt; if (Math.random() < dt * 4) fx.push({ k: 'spark', x: c.x + (Math.random() - .5) * 12, y: c.y - 16, t: 0, life: .4, col: KINDS[c.s.kind].top }); if (c.wt <= 0) finish(c); return; }
+  if (c.st === 'stuck') { const s = pickSt(c, c.need); if (s) { c.bub = ''; c.st = 'walk'; route(c, s); } return; }
   if (c.st === 'idle') {
-    const tk = inbox.find(t => !t.by);
-    if (tk) { tk.by = c; c.st = 'walk'; goTo(c, mods.find(m => m.kind === 'in')); return; }
-    c.idleT -= dt; if (c.idleT <= 0) { c.idleT = 2 + Math.random() * 3; const [sx, sy] = tileOf(c); for (let k = 0; k < 10; k++) { const nx = sx + Math.round((Math.random() - .5) * 6), ny = sy + Math.round((Math.random() - .5) * 4); if (nx >= 0 && ny >= 0 && nx < GW && ny < GH && !block[ny * GW + nx]) { c.path = bfs(sx, sy, nx, ny) || []; break; } } }
+    const tk = inbox.find(t => !t.by), inn = sts.find(s => s.kind === 'in');
+    if (tk) { const [sx, sy] = tileOf(c); if (bfs(sx, sy, inn.x, inn.y)) { tk.by = c; c.st = 'walk'; route(c, inn); return; } }
+    c.idleT -= dt;
+    if (c.idleT <= 0) { c.idleT = 1.5 + Math.random() * 3; const [sx, sy] = tileOf(c); const opts = []; for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) if (inb(sx + dx, sy + dy) && road[(sy + dy) * GW + sx + dx]) opts.push([sx + dx, sy + dy]); if (opts.length) { const o = opts[Math.floor(Math.random() * opts.length)]; c.path = bfs(sx, sy, o[0], o[1]) || []; } }
   }
 }
-// 방이 옮겨지면 그 방으로 가던 꼬물이는 길을 다시 찾는다
-function rerouteAll() { for (const c of crew) { if (c.st === 'walk' && c.mod) goTo(c, c.mod); else if (c.st === 'idle') c.path = []; const [sx, sy] = tileOf(c); if (block[sy * GW + sx]) { const f = nearestFree(sx, sy); c.x = f[0] * T + 8; c.y = f[1] * T + 12; } } }
-function nearestFree(x, y) { for (let r = 1; r < 10; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < GW && ny < GH && !block[ny * GW + nx]) return [nx, ny]; } return [x, y]; }
-// 옮긴 방에서 일하거나 줄 서던 꼬물이는 새 자리로 따라간다
-function detach(m) { for (const c of crew) if (c.mod === m && (c.st === 'work' || c.st === 'queue')) { if (c.st === 'work') c.wt = KINDS[m.kind].work; c.st = 'walk'; } m.busy = null; m.queue = []; }
+// 판이 바뀌면(길, 방) 가던 꼬물이는 길을 다시 찾는다
+function replan() {
+  for (const c of crew) {
+    const [sx, sy] = tileOf(c);
+    if (!road[sy * GW + sx] && !at(sx, sy)) { const f = nearestRoad(sx, sy); if (f) { [c.x, c.y] = center(f[0], f[1]); } }
+    if (c.st === 'walk' && c.s) { if (c.s.held || !route(c, c.s)) { c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; c.path = []; } }
+    else if (c.st === 'idle') c.path = [];
+  }
+}
+function nearestRoad(x, y) { for (let r = 1; r < 8; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (inb(x + dx, y + dy) && road[(y + dy) * GW + x + dx]) return [x + dx, y + dy]; return null; }
+function release(s) { // 방을 들면 거기서 일하거나 줄 서던 꼬물이는 다른 곳을 찾는다
+  for (const c of crew) if (c.s === s && ['work', 'queue', 'enter', 'walk'].includes(c.st)) { const [sx, sy] = tileOf(c); if (c.st === 'work' || c.st === 'enter') { const f = nearestRoad(sx, sy); if (f) [c.x, c.y] = center(f[0], f[1]); } c.path = []; c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; }
+  s.busy = null; s.queue = [];
+}
 
 // 도착
 let arrAcc = 0;
 const typesNow = () => Object.keys(REQ).filter(k => REQ[k].day <= S.day);
-function rate() { const ph = (S.t % DAY) / DAY, wave = 0.75 + 0.5 * Math.sin(ph * Math.PI * 2 - 1); return (0.17 + 0.05 * (S.day - 1)) * wave; }
-function spawnReq() {
-  const ty = typesNow(), type = ty[Math.floor(Math.random() * ty.length)];
-  if (inbox.length >= S.inboxCap) { S.mood = Math.max(0, S.mood - 2); dayStat.overflow++; if (Math.random() < 0.5) ticker('<b>인간</b> 대답이 없자 다른 탭을 열었다.'); return; }
-  const tk = { type, t0: S.t, step: 0, by: null, fails: 0 }; inbox.push(tk); tickets.push(tk);
-  if (Math.random() < 0.4) { const s = REQ[type].say; ticker(`<b>인간</b> ${s[Math.floor(Math.random() * s.length)]}`); }
+function rate() { const ph = (S.t % DAY) / DAY; return (0.3 + 0.09 * (S.day - 1)) * (0.85 + 0.3 * Math.sin(ph * Math.PI * 2 - 1)); }
+function spawn() {
+  const ty = typesNow(), hidden = ty[Math.floor(Math.random() * ty.length)];
+  if (inbox.length >= S.inboxCap) { S.mood = Math.max(0, S.mood - 2); dayStat.overflow++; if (Math.random() < 0.4) ticker('<b>인간</b> 대답이 없자 다른 탭을 열었다.'); return; }
+  inbox.push({ hidden, type: null, t0: S.t, step: 0, by: null });
+  if (Math.random() < 0.4) { const s = REQ[hidden].say; ticker(`<b>인간</b> ${s[Math.floor(Math.random() * s.length)]}`); }
 }
 
-// ───────── 하루 끝: 진단 + 카드 두 장 ─────────
+// ───────── 하루 끝 ─────────
 const CARDS = [
-  { id: 'm-search', n: '검색실 하나 더', d: '찾기 일을 나눠 맡는다.', mod: 'search' },
-  { id: 'm-write', n: '작성실 하나 더', d: '쓰기 일을 나눠 맡는다.', mod: 'write' },
-  { id: 'm-qa', n: '검수대 하나 더', d: '확인 줄이 짧아진다.', mod: 'qa' },
-  { id: 'm-draw', n: '그림실 하나 더', d: '그리기 일을 나눠 맡는다.', mod: 'draw', need: 'draw' },
-  { id: 'm-calc', n: '계산실 하나 더', d: '계산 일을 나눠 맡는다.', mod: 'calc', need: 'calc' },
-  { id: 'crew', n: '꼬물이 둘', d: '일손이 늘어난다. 대신 길이 붐빈다.', f: () => { addCrew(); addCrew(); } },
-  { id: 'qa-train', n: '검수 교육', d: '검수에서 틀리는 일이 40% 줄어든다.', f: () => { S.qaFail *= 0.6; } },
-  { id: 'shoes', n: '작은 운동화', d: '모두 30% 빨리 걷는다.', f: () => { S.walk *= 1.3; } },
-  { id: 'inbox', n: '큰 접수함', d: '요청을 6개 더 쌓아 둘 수 있다.', f: () => { S.inboxCap += 6; } },
+  { n: '길 10칸', d: '깔 수 있는 길이 늘어난다.', f: () => { S.roads += 10; } },
+  { n: '꼬물이 둘', d: '일손이 늘어난다. 대신 길이 붐빈다.', f: () => { addCrew(); addCrew(); } },
+  { n: '검수 교육', d: '검수에서 틀리는 일이 40% 줄어든다.', f: () => { S.qaFail *= 0.6; } },
+  { n: '작은 운동화', d: '모두 30% 빨리 걷는다.', f: () => { S.walk *= 1.3; } },
+  { n: '큰 접수함', d: '요청을 6개 더 쌓아 둘 수 있다.', f: () => { S.inboxCap += 6; } },
+  { n: '분류대 하나 더', d: '분류 줄이 짧아진다.', st: 'sort' },
+  { n: '검색실 하나 더', d: '찾기 일을 나눠 맡는다.', st: 'search' },
+  { n: '작성실 하나 더', d: '쓰기 일을 나눠 맡는다.', st: 'write' },
+  { n: '검수대 하나 더', d: '확인 줄이 짧아진다.', st: 'qa' },
+  { n: '그림실 하나 더', d: '그리기 일을 나눠 맡는다.', st: 'draw', need: 2 },
+  { n: '계산실 하나 더', d: '계산 일을 나눠 맡는다.', st: 'calc', need: 3 },
 ];
-const NEWROOM = { 2: 'draw', 3: 'calc' };
+let pick = [];
 function endDay() {
-  S.inDay = false;
+  S.inDay = false; closePop();
   const avg = dayStat.done ? dayStat.wait / dayStat.done : 0;
-  const worst = Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0];
-  const diag = worst && worst[1] > 8 ? `오늘 가장 막힌 곳은 <b>${KINDS[worst[0]].n}</b>입니다. 꼬물이들이 거기서 모두 ${Math.round(worst[1])}초를 줄 서서 기다렸어요.` : '오늘은 크게 막힌 곳이 없었어요.';
+  const worst = Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0], stuck = Object.entries(dayStat.stuck).sort((a, b) => b[1] - a[1])[0];
+  let diag = worst && worst[1] > 5 ? `가장 막힌 곳: <b>${KINDS[worst[0]].n}</b> (모두 합쳐 ${Math.round(worst[1])}초 줄 섬)` : '크게 막힌 곳은 없었어요.';
+  if (stuck) diag += `<br>길이 없어 헤맨 일: <b>${KINDS[stuck[0]].n}</b>로 가는 길 ${stuck[1]}번`;
   const nextDay = S.day + 1, newType = Object.keys(REQ).find(k => REQ[k].day === nextDay);
-  // 카드 두 장: 내일 새 일감이 오면 그 방은 반드시 하나
-  let pool = CARDS.filter(c => !c.need || typesNow().some(t => REQ[t].route.includes(c.need)) || NEWROOM[nextDay] === c.need);
-  let pick = [];
-  if (NEWROOM[nextDay]) pick.push(CARDS.find(c => c.mod === NEWROOM[nextDay]));
-  if (worst && worst[1] > 8 && Math.random() < 0.6) { const c = CARDS.find(c => c.mod === worst[0]); if (c && !pick.includes(c)) pick.push(c); }
+  const pool = CARDS.filter(c => !c.need || c.need <= nextDay);
+  pick = [];
+  if (worst && worst[1] > 5) { const c = pool.find(c => c.st === worst[0]); if (c) pick.push(c); }
   while (pick.length < 2) { const c = pool[Math.floor(Math.random() * pool.length)]; if (!pick.includes(c)) pick.push(c); }
   $('rep').innerHTML = `<h2>${S.day}일째 보고</h2>
     <div class="row"><span>처리한 요청</span><span>${dayStat.done}개</span></div>
@@ -229,40 +264,48 @@ function endDay() {
     <div class="row"><span>검수에서 되돌아감</span><span>${dayStat.fails}번</span></div>
     <div class="row"><span>접수함이 넘쳐 놓친 요청</span><span>${dayStat.overflow}개</span></div>
     <p class="diag">${diag}</p>
-    ${newType ? `<p>내일부터 인간이 <b>${REQ[newType].n}</b>도 부탁합니다. 순서: ${REQ[newType].route.map(k => KINDS[k].n).join(' → ')} → 발송구</p>` : ''}
-    <p>하나를 고르세요. (1, 2)</p>
+    ${newType ? `<p>내일부터 인간이 <b>${REQ[newType].n}</b>도 부탁합니다: ${REQ[newType].route.map(k => KINDS[k].n).join(' → ')} → 발송구.${NEWROOM[nextDay] ? ` <b>${KINDS[NEWROOM[nextDay]].n}</b>은 하나 그냥 드립니다.` : ''}</p>` : ''}
+    <p>하나를 고르세요 (1, 2)</p>
     <div class="cards">${pick.map((c, i) => `<button type="button" class="card" data-i="${i}"><b>${i + 1}. ${c.n}</b><i>${c.d}</i></button>`).join('')}</div>`;
-  $('repOv').hidden = false;
-  $('rep').querySelectorAll('.card').forEach(b => b.addEventListener('click', () => choose(pick[+b.dataset.i])));
-  window.__pick = pick;
+  $('repOv').hidden = false; $('rep').querySelectorAll('.card').forEach(b => b.addEventListener('click', () => choose(pick[+b.dataset.i])));
 }
+let toPlace = [];
 function choose(c) {
   $('repOv').hidden = true; S.day++; S.inDay = true; dayStat = newDayStat();
-  if (c.mod) { const m = addMod(c.mod, -10, -10); m.lifted = true; held = m; held.from = null; ticker(`<b>${KINDS[c.mod].n}</b>을 놓을 자리를 누르세요.`); }
-  else { c.f(); ticker(`${c.n}.`); }
-  buildLegend();
+  if (NEWROOM[S.day]) toPlace.push(NEWROOM[S.day]);
+  if (c.st) toPlace.push(c.st); else { c.f(); ticker(`${c.n}.`); }
+  nextPlace(); buildLegend();
 }
+function nextPlace() { if (held || !toPlace.length) return; const k = toPlace.shift(); held = addSt(k, -5, -5); held.held = true; held.from = null; setTool('sel'); ticker(`새 <b>${KINDS[k].n}</b>: 길 옆 빈 칸을 누르세요.`); }
 
-// ───────── 방 옮기기 ─────────
-let held = null, hover = [0, 0];
-function canPlace(m, x, y) {
-  if (x < 0 || y < 0 || x + 2 > GW || y + 3 > GH) return false;
-  for (const o of mods) if (o !== m && !o.lifted) { if (x < o.x + 2 && x + 2 > o.x && y < o.y + 2 && y + 2 > o.y) return false; const [dx, dy] = door(o); if (dx >= x && dx < x + 2 && dy >= y && dy < y + 2) return false; if (x === dx && y + 2 === dy) return false; const [mdx, mdy] = [x, y + 2]; if (mdx >= o.x && mdx < o.x + 2 && mdy >= o.y && mdy < o.y + 2) return false; }
-  // 놓은 뒤에도 접수함에서 모든 방 문까지 길이 있어야 한다
-  const save = [m.x, m.y, m.lifted]; m.x = x; m.y = y; m.lifted = false; rebuildBlock();
-  const inn = mods.find(o => o.kind === 'in'), [sx, sy] = door(inn); let ok = true;
-  for (const o of mods) if (!o.lifted && o !== inn) { const [tx, ty] = door(o); if (!bfs(sx, sy, tx, ty)) { ok = false; break; } }
-  [m.x, m.y, m.lifted] = save; rebuildBlock(); return ok;
+// ───────── 편집: 고르기 / 길 깔기 / 길 지우기 / 방 들기 ─────────
+let tool = 'sel', held = null, hover = [0, 0], dragging = false, popSt = null;
+function setTool(t) { tool = t; ['sel', 'road', 'erase'].forEach(k => $('t' + { sel: 'Sel', road: 'Road', erase: 'Erase' }[k]).classList.toggle('on', k === t)); if (t !== 'sel') closePop(); }
+function paint(x, y) {
+  if (!inb(x, y) || at(x, y)) return; const i = y * GW + x;
+  if (tool === 'road' && !road[i] && S.roads > 0) { road[i] = 1; S.roads--; replan(); }
+  else if (tool === 'erase' && road[i]) { road[i] = 0; S.roads++; replan(); }
 }
-function lift(m) { if (m.fixed) return; detach(m); held = m; held.from = [m.x, m.y]; m.lifted = true; rebuildBlock(); rerouteAll(); }
-function drop() { const [x, y] = hover; if (!canPlace(held, x, y)) return; held.x = x; held.y = y; held.lifted = false; held = null; rebuildBlock(); rerouteAll(); }
-function cancelHold() { if (!held) return; if (held.from) { held.x = held.from[0]; held.y = held.from[1]; held.lifted = false; held = null; rebuildBlock(); rerouteAll(); } }
+const canPlace = (x, y) => inb(x, y) && !road[y * GW + x] && !at(x, y);
+function drop(x, y) { if (!canPlace(x, y)) return false; held.x = x; held.y = y; held.held = false; const s = held; held = null; replan(); if (!hasRoadNext(s)) ticker(`<b>${KINDS[s.kind].n}</b> 옆에 길이 없어요. 길을 이어 주세요.`); nextPlace(); return true; }
+const hasRoadNext = s => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => inb(s.x + dx, s.y + dy) && road[(s.y + dy) * GW + s.x + dx]);
+function lift(s) { release(s); held = s; held.from = [s.x, s.y]; s.held = true; closePop(); replan(); }
+function cancelHold() { if (held && held.from) { held.x = held.from[0]; held.y = held.from[1]; held.held = false; held = null; replan(); nextPlace(); } }
+function openPop(s) {
+  popSt = s; const p = $('pop'), types = typesNow();
+  const filt = s.kind === 'in' || s.kind === 'out' || s.kind === 'sort' ? '' : `<div>받을 요청 <i>(끄면 이 방은 그 요청을 안 받음)</i></div><div class="row">${types.filter(t => REQ[t].route.includes(s.kind)).map(t => `<button type="button" data-t="${t}" class="${accepts(s, t) ? 'on' : ''}">${REQ[t].n}</button>`).join('')}</div>`;
+  p.innerHTML = `<b>${KINDS[s.kind].n}</b>${filt}<div class="row">${s.fixed ? '<i>고정된 칸</i>' : '<button type="button" data-a="move">옮기기</button>'}<button type="button" data-a="close">닫기</button></div>`;
+  p.style.left = Math.min(70, (s.x * T + T) / W * 100) + '%'; p.style.top = Math.min(60, (s.y * T) / H * 100) + '%'; p.hidden = false;
+  p.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { const t = b.dataset.t; if (!s.accept) s.accept = new Set(typesNow()); if (s.accept.has(t)) s.accept.delete(t); else s.accept.add(t); openPop(s); });
+  p.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { if (b.dataset.a === 'move') lift(s); else closePop(); });
+}
+function closePop() { $('pop').hidden = true; popSt = null; }
 
 // ───────── 한 틱 ─────────
 function step(dt) {
-  if (!S.inDay || held || S.paused) return;
+  if (!S.inDay || S.paused) return;
   S.t += dt;
-  arrAcc += dt * rate(); while (arrAcc >= 1) { arrAcc--; spawnReq(); }
+  arrAcc += dt * rate(); while (arrAcc >= 1) { arrAcc--; spawn(); }
   for (const c of crew) stepCrew(c, dt);
   for (const f of fx) f.t += dt; fx = fx.filter(f => f.t < f.life);
   if (S.t >= S.day * DAY) endDay();
@@ -275,102 +318,117 @@ function critter(tint, frame) {
   const s = 16, c = document.createElement('canvas'); c.width = s; c.height = s; const x = c.getContext('2d');
   const px = (a, b, col) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); };
   const bot = 13, top = 3, cx = 7.5, rx = 6.4, ry = (bot - top) / 2 + 0.4, cy = top + ry - 0.4 + (frame ? 0.5 : 0);
-  const inside = (i, j) => ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2 <= 1;
-  for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { if (!inside(i, j)) continue; const edge = !inside(i - 1, j) || !inside(i + 1, j) || !inside(i, j - 1) || !inside(i, j + 1); px(i, j, edge ? '#2b1d2c' : tint); if (!edge && j > cy + ry * 0.35) px(i, j, 'rgba(0,0,0,.18)'); if (!edge && i < cx - 1 && j < cy - ry * 0.35) px(i, j, 'rgba(255,255,255,.28)'); }
+  const ins = (i, j) => ((i - cx) / rx) ** 2 + ((j - cy) / ry) ** 2 <= 1;
+  for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { if (!ins(i, j)) continue; const edge = !ins(i - 1, j) || !ins(i + 1, j) || !ins(i, j - 1) || !ins(i, j + 1); px(i, j, edge ? '#2b1d2c' : tint); if (!edge && j > cy + ry * 0.35) px(i, j, 'rgba(0,0,0,.18)'); if (!edge && i < cx - 1 && j < cy - ry * 0.35) px(i, j, 'rgba(255,255,255,.28)'); }
   const ey = Math.round(cy - 1); x.fillStyle = '#1b1420'; x.fillRect(4, ey, 2, 3); x.fillRect(10, ey, 2, 3);
   x.fillStyle = '#f08a7a'; x.fillRect(2, ey + 3, 1, 1); x.fillRect(13, ey + 3, 1, 1);
   x.fillStyle = '#2b1d2c'; x.fillRect(8 + (frame ? 1 : 0), 0, 1, 3); px(8 + (frame ? 1 : 0), 0, '#7fe0d0');
   x.fillRect(4, 14, 2, frame === 0 ? 1 : 2); x.fillRect(10, 14, 2, frame === 1 ? 1 : 2);
   return (sprCache[key] = c);
 }
-let FLOOR;
-function buildFloor() {
-  FLOOR = document.createElement('canvas'); FLOOR.width = W; FLOOR.height = H; const x = FLOOR.getContext('2d');
-  for (let y = 0; y < GH; y++) for (let i = 0; i < GW; i++) { x.fillStyle = (i + y) % 2 ? '#262236' : '#2a263c'; x.fillRect(i * T, y * T, T, T); }
-  x.fillStyle = 'rgba(127,224,208,.06)'; for (let k = 0; k < 40; k++) { const yy = (k * 37) % H, xx = (k * 71) % W; x.fillRect(xx, yy, 20, 1); x.fillRect(xx + 20, yy, 1, 8); }
+const cv = $id('cv'), ctx = cv.getContext('2d');
+function $id(id) { return document.getElementById(id); }
+function drawTile(x, y) { // 빈 칸: 타일 한 장씩 테두리가 보이게
+  const px = x * T, py = y * T; ctx.fillStyle = (x + y) % 2 ? '#24203a' : '#27233e'; ctx.fillRect(px, py, T, T);
+  ctx.fillStyle = '#1a1729'; ctx.fillRect(px, py + T - 1, T, 1); ctx.fillRect(px + T - 1, py, 1, T);
+  ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(px, py, T - 1, 1); ctx.fillRect(px, py, 1, T - 1);
 }
-function drawMod(ctx, m, t, ghost) {
-  const k = KINDS[m.kind], px = m.x * T, py = m.y * T;
-  ctx.globalAlpha = ghost ? 0.55 : 1;
-  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(px + 2, py + 4, 30, 30);
-  ctx.fillStyle = k.col; ctx.fillRect(px + 1, py + 6, 30, 25);          // 앞면
-  ctx.fillStyle = k.top; ctx.fillRect(px + 1, py + 1, 30, 7);            // 윗면(살짝 내려다본 탑뷰)
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(px + 1, py + 8, 30, 1);
-  // 방 종류마다 작은 표시
-  ctx.fillStyle = '#1b1828';
-  if (m.kind === 'in' || m.kind === 'out') { ctx.fillRect(px + 6, py + 12, 20, 14); ctx.fillStyle = k.top; ctx.fillRect(px + 8, py + 14, 16, 2); }
-  else if (m.kind === 'search') { ctx.fillRect(px + 8, py + 12, 10, 10); ctx.fillStyle = k.top; ctx.fillRect(px + 10, py + 14, 6, 6); ctx.fillStyle = '#1b1828'; ctx.fillRect(px + 18, py + 22, 6, 2); }
-  else if (m.kind === 'write') { ctx.fillStyle = '#f4f1ff'; ctx.fillRect(px + 8, py + 11, 14, 16); ctx.fillStyle = '#6a5a3a'; for (let r = 0; r < 4; r++) ctx.fillRect(px + 10, py + 14 + r * 3, 10, 1); }
-  else if (m.kind === 'draw') { ctx.fillStyle = '#f4f1ff'; ctx.fillRect(px + 8, py + 11, 16, 13); const cs = ['#ff9ad0', '#8ac8ff', '#ffe27a']; cs.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(px + 10 + i * 4, py + 14 + (i % 2) * 4, 4, 4); }); }
-  else if (m.kind === 'calc') { ctx.fillRect(px + 8, py + 11, 16, 16); ctx.fillStyle = k.top; for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) ctx.fillRect(px + 10 + q * 4, py + 13 + r * 4, 3, 3); }
-  else if (m.kind === 'qa') { ctx.fillStyle = '#f4f1ff'; ctx.fillRect(px + 8, py + 11, 14, 14); ctx.fillStyle = '#3aa060'; ctx.fillRect(px + 11, py + 18, 2, 2); ctx.fillRect(px + 13, py + 20, 2, 2); ctx.fillRect(px + 15, py + 16, 2, 4); ctx.fillRect(px + 17, py + 14, 2, 2); }
-  if (m.busy && !ghost) { ctx.fillStyle = Math.sin(t * 10) > 0 ? k.top : '#ffffff'; ctx.fillRect(px + 26, py + 10, 3, 3); }
-  // 문
-  const [dx, dy] = door(m); ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(dx * T + 2, dy * T + 2, 12, 12); ctx.fillStyle = k.top; ctx.globalAlpha = (ghost ? .4 : .5); ctx.fillRect(dx * T + 4, dy * T + 1, 8, 1);
+function drawRoad(x, y) { // 길: 이웃 길·방으로 이음새가 붙는다
+  const px = x * T, py = y * T, link = (dx, dy) => inb(x + dx, y + dy) && (road[(y + dy) * GW + x + dx] || at(x + dx, y + dy));
+  ctx.fillStyle = '#3a3552'; ctx.fillRect(px + 6, py + 6, 12, 12);
+  if (link(1, 0)) ctx.fillRect(px + 18, py + 6, 6, 12); if (link(-1, 0)) ctx.fillRect(px, py + 6, 6, 12);
+  if (link(0, 1)) ctx.fillRect(px + 6, py + 18, 12, 6); if (link(0, -1)) ctx.fillRect(px + 6, py, 12, 6);
+  ctx.fillStyle = 'rgba(127,224,208,.22)'; ctx.fillRect(px + 11, py + 11, 2, 2);
+}
+function drawSt(s, t, ghost) {
+  const k = KINDS[s.kind], px = s.x * T, py = s.y * T; ctx.globalAlpha = ghost ? .55 : 1;
+  ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(px + 2, py + 3, 21, 21);
+  ctx.fillStyle = k.col; ctx.fillRect(px + 1, py + 1, 22, 21);
+  ctx.fillStyle = k.top; ctx.fillRect(px + 1, py + 1, 22, 5);
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(px + 1, py + 6, 22, 1);
+  // 작은 그림 기호
+  const ix = px + 7, iy = py + 9; ctx.fillStyle = '#f4f1ff';
+  if (s.kind === 'in') { ctx.fillRect(ix, iy + 2, 10, 7); ctx.fillStyle = k.col; ctx.fillRect(ix + 2, iy + 4, 6, 1); }
+  else if (s.kind === 'out') { ctx.fillRect(ix + 1, iy, 8, 6); ctx.fillRect(ix + 4, iy + 6, 2, 2); ctx.fillRect(ix + 2, iy + 8, 6, 1); }
+  else if (s.kind === 'sort') { ['#8ac8ff', '#ff9ad0', '#f0e070', '#8fe0a0'].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(ix + (i % 2) * 5, iy + Math.floor(i / 2) * 5, 4, 4); }); }
+  else if (s.kind === 'search') { ctx.fillRect(ix, iy, 6, 6); ctx.fillStyle = k.col; ctx.fillRect(ix + 1, iy + 1, 4, 4); ctx.fillStyle = '#f4f1ff'; ctx.fillRect(ix + 6, iy + 6, 3, 3); }
+  else if (s.kind === 'write') { ctx.fillRect(ix, iy, 9, 10); ctx.fillStyle = k.col; for (let r = 0; r < 3; r++) ctx.fillRect(ix + 2, iy + 2 + r * 3, 5, 1); }
+  else if (s.kind === 'draw') { ctx.fillRect(ix, iy, 10, 9); ctx.fillStyle = '#ff9ad0'; ctx.fillRect(ix + 2, iy + 2, 3, 3); ctx.fillStyle = '#8ac8ff'; ctx.fillRect(ix + 5, iy + 4, 3, 3); }
+  else if (s.kind === 'calc') { ctx.fillStyle = '#1b1828'; ctx.fillRect(ix, iy, 10, 10); ctx.fillStyle = k.top; for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) ctx.fillRect(ix + 1 + q * 3, iy + 1 + r * 3, 2, 2); }
+  else if (s.kind === 'qa') { ctx.fillRect(ix, iy, 10, 10); ctx.fillStyle = '#3aa060'; ctx.fillRect(ix + 2, iy + 5, 2, 2); ctx.fillRect(ix + 4, iy + 7, 2, 1); ctx.fillRect(ix + 6, iy + 3, 2, 4); }
+  if (s.accept && !ghost) { let i = 0; for (const tp of typesNow()) if (REQ[tp].route.includes(s.kind) && s.accept.has(tp)) { ctx.fillStyle = REQ[tp].col; ctx.fillRect(px + 3 + i * 4, py + 19, 3, 2); i++; } }
+  if (s.busy && !ghost) { ctx.fillStyle = Math.sin(t * 10) > 0 ? k.top : '#fff'; ctx.fillRect(px + 19, py + 9, 2, 2); }
   ctx.globalAlpha = 1;
 }
-function drawTicket(ctx, type, x, y) { ctx.fillStyle = '#2b1d2c'; ctx.fillRect(x - 3, y - 4, 7, 6); ctx.fillStyle = REQ[type].col; ctx.fillRect(x - 2, y - 3, 5, 4); }
-const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+function drawTicket(tk, x, y) { ctx.fillStyle = '#2b1d2c'; ctx.fillRect(x - 3, y - 4, 7, 6); ctx.fillStyle = tk.type ? REQ[tk.type].col : '#9a93ad'; ctx.fillRect(x - 2, y - 3, 5, 4); if (!tk.type) { ctx.fillStyle = '#2b1d2c'; ctx.fillRect(x, y - 2, 1, 1); } }
 function draw(t) {
-  ctx.drawImage(FLOOR, 0, 0);
-  for (const m of mods) if (!m.lifted) drawMod(ctx, m, t);
-  // 접수함 위에 쌓인 요청
-  const inn = mods.find(m => m.kind === 'in'); inbox.forEach((tk, i) => drawTicket(ctx, tk.type, inn.x * T + 6 + (i % 5) * 5, inn.y * T + 30 + 6 + Math.floor(i / 5) * 5 + 4));
-  // 줄 위치: 문 옆으로 늘어선다
-  for (const m of mods) m.queue.forEach((c, i) => { if (!c.path.length) { const [dx, dy] = door(m); c.x += ((dx * T + 8 + (i + 1) * 9) - c.x) * 0.2; c.y += ((dy * T + 12 + 3) - c.y) * 0.2; } });
-  const order = [...crew].sort((a, b) => a.y - b.y);
-  for (const c of order) {
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { drawTile(x, y); if (road[y * GW + x]) drawRoad(x, y); }
+  if (tool !== 'sel' || held) { const [hx, hy] = hover; if (inb(hx, hy)) { ctx.strokeStyle = held ? (canPlace(hx, hy) ? '#7fe0d0' : '#ff5a5a') : tool === 'road' ? '#7fe0d0' : '#ff8a7a'; ctx.strokeRect(hx * T + .5, hy * T + .5, T - 1, T - 1); } }
+  for (const s of sts) if (!s.held) drawSt(s, t);
+  const inn = sts.find(s => s.kind === 'in'); inbox.forEach((tk, i) => drawTicket(tk, inn.x * T + 4 + (i % 4) * 5, inn.y * T + 30 + Math.floor(i / 4) * 5 + (inn.y >= GH - 1 ? -40 : 0)));
+  for (const s of sts) s.queue.forEach((c, i) => { const [qx, qy] = tileOf(c); if (i > 0) { c.x += ((qx * T + 12 - i * 3) - c.x) * .15; } });
+  for (const c of [...crew].sort((a, b) => a.y - b.y)) {
     const moving = c.path.length > 0, fr = moving ? Math.floor(t * 8 + c.ph) % 2 : c.st === 'work' ? Math.floor(t * 5) % 2 : 0;
-    const img = critter(c.tint, fr), x = Math.round(c.x - 8), y = Math.round(c.y - 14);
+    const img = critter(c.tint, fr), x = Math.round(c.x - 8), y = Math.round(c.y - 16);
     ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(x + 3, y + 15, 10, 2);
     if (c.face < 0) { ctx.save(); ctx.translate(x + 16, y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); } else ctx.drawImage(img, x, y);
-    if (c.tk) drawTicket(ctx, c.tk.type, Math.round(c.x), y - 1);
+    if (c.tk) drawTicket(c.tk, Math.round(c.x), y - 1);
+    if (c.bub) { ctx.fillStyle = '#fff'; ctx.fillRect(x + 11, y - 9, 7, 8); ctx.fillStyle = '#ff5a5a'; ctx.fillRect(x + 14, y - 8, 1, 4); ctx.fillRect(x + 14, y - 3, 1, 1); }
   }
-  for (const f of fx) { const q = f.t / f.life; if (f.k === 'spark') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x), Math.round(f.y - q * 6), 1, 1); } else if (f.k === 'x') { ctx.fillStyle = '#ff5a5a'; const x = Math.round(f.x), y = Math.round(f.y - q * 6); for (let k = -2; k <= 2; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + k, y - k, 1, 1); } } else if (f.k === 'ok') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x - 1), Math.round(f.y - q * 10), 3, 3); } }
-  if (held) { const ok = canPlace(held, hover[0], hover[1]); const g = { ...held, x: hover[0], y: hover[1] }; drawMod(ctx, g, t, true); ctx.strokeStyle = ok ? '#7fe0d0' : '#ff5a5a'; ctx.lineWidth = 1; ctx.strokeRect(hover[0] * T + .5, hover[1] * T + .5, 32, 48); }
+  for (const f of fx) { const q = f.t / f.life; if (f.k === 'spark') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x), Math.round(f.y - q * 6), 1, 1); } else if (f.k === 'x') { ctx.fillStyle = '#ff5a5a'; const x = Math.round(f.x), y = Math.round(f.y - q * 6); for (let k = -2; k <= 2; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + k, y - k, 1, 1); } } else if (f.k === 'pop') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x - 1), Math.round(f.y - q * 10), 3, 3); } }
+  if (held) { const [hx, hy] = hover; if (inb(hx, hy)) drawSt({ ...held, x: hx, y: hy, accept: null }, t, true); }
 }
 
-// ───────── HTML 글자 ─────────
-const $ = id => document.getElementById(id);
+// ───────── HTML ─────────
+function $(id) { return document.getElementById(id); }
 function ticker(s) { $('ticker').innerHTML = s; }
-function buildLegend() { $('legend').innerHTML = typesNow().map(k => `<span><i style="background:${REQ[k].col}"></i>${REQ[k].n}: ${REQ[k].route.map(r => KINDS[r].n).join(' → ')} → 발송구</span>`).join(''); }
+function buildLegend() { $('legend').innerHTML = `<span><i style="background:#9a93ad"></i>분류 전: 접수함 → 분류대</span>` + typesNow().map(k => `<span><i style="background:${REQ[k].col}"></i>${REQ[k].n}: ${REQ[k].route.map(r => KINDS[r].n).join(' → ')} → 발송구</span>`).join(''); }
 function renderLabels() {
-  const box = $('labels'); let html = '';
-  for (const m of mods) {
-    if (m.lifted) continue; const q = m.queue.length;
-    html += `<div class="lab" style="left:${(m.x * T + 16) / W * 100}%;top:${(m.y * T + 4) / H * 100}%">${KINDS[m.kind].n}${q >= 2 ? `<small>줄 ${q}</small>` : ''}</div>`;
+  let h = '';
+  for (const s of sts) {
+    if (s.held) continue; const cx = (s.x * T + 12) / W * 100;
+    h += `<div class="lab" style="left:${cx}%;top:${(s.y * T + T) / H * 100}%">${KINDS[s.kind].n}</div>`;
+    const q = s.queue.length; if (q >= 2) h += `<div class="badge q" style="left:${cx}%;top:${(s.y * T) / H * 100}%">줄 ${q}</div>`;
   }
-  box.innerHTML = html;
+  const st = crew.filter(c => c.st === 'stuck'); if (st.length) { const c = st[0]; h += `<div class="badge" style="left:${c.x / W * 100}%;top:${(c.y - 22) / H * 100}%">${KINDS[c.need].n} 가는 길 없음</div>`; }
+  $('labels').innerHTML = h;
 }
 function renderHud() {
-  const left = Math.max(0, S.day * DAY - S.t);
-  $('day').textContent = `${S.day}일째`; $('left').textContent = `하루 끝까지 ${Math.ceil(left)}초`;
-  $('done').textContent = S.done; $('mood').textContent = `인간 기분 ${Math.round(S.mood)} · 접수함 ${inbox.length}/${S.inboxCap}`;
-  const md = $('mode'); md.hidden = !held && !S.paused; md.textContent = held ? `${KINDS[held.kind].n} 옮기는 중 · 멈춤` : '멈춤';
-  $('pause').innerHTML = `<kbd>Space</kbd>${S.paused ? '계속' : '멈춤'}`;
+  $('day').textContent = `${S.day}일째`; $('done').textContent = S.done;
+  $('mood').textContent = `인간 기분 ${Math.round(S.mood)} · 접수함 ${inbox.length}/${S.inboxCap}`;
+  $('dayFill').style.width = Math.min(100, (S.t - (S.day - 1) * DAY) / DAY * 100) + '%';
+  $('inv').innerHTML = `남은 길 <b>${S.roads}</b>칸 · 꼬물이 <b>${crew.length}</b>${toPlace.length ? ` · 놓을 방 <b>${toPlace.length}</b>` : ''}`;
+  const md = $('mode'); md.hidden = !held && !S.paused && tool === 'sel'; md.textContent = held ? `${KINDS[held.kind].n} 놓을 칸을 누르세요${held.from ? ' (Esc 취소)' : ''}` : S.paused ? '멈춤' : tool === 'road' ? '길 깔기: 누르거나 끌기' : '길 지우기: 누르거나 끌기';
+  $('tPause').innerHTML = `<kbd>Space</kbd>${S.paused ? '계속' : '멈춤'}`;
 }
 
 // ───────── 입력 ─────────
 function toTile(e) { const r = cv.getBoundingClientRect(); return [Math.floor((e.clientX - r.left) / r.width * GW), Math.floor((e.clientY - r.top) / r.height * GH)]; }
-cv.addEventListener('mousemove', e => { const [x, y] = toTile(e); hover = [Math.max(0, Math.min(GW - 2, x)), Math.max(0, Math.min(GH - 3, y))]; });
-cv.addEventListener('click', e => {
-  const [x, y] = toTile(e);
-  if (held) { hover = [Math.max(0, Math.min(GW - 2, x)), Math.max(0, Math.min(GH - 3, y))]; drop(); return; }
-  const m = mods.find(m => !m.lifted && x >= m.x && x < m.x + 2 && y >= m.y && y < m.y + 2); if (m) { lift(m); hover = [m.x, m.y]; }
+cv.addEventListener('pointermove', e => { hover = toTile(e); if (dragging) paint(...hover); });
+cv.addEventListener('pointerdown', e => {
+  if (e.button === 2) return; const [x, y] = hover = toTile(e);
+  if (held) { drop(x, y); return; }
+  if (tool !== 'sel') { dragging = true; cv.setPointerCapture(e.pointerId); paint(x, y); return; }
+  const s = at(x, y); if (s) openPop(s); else closePop();
 });
-cv.addEventListener('contextmenu', e => { e.preventDefault(); cancelHold(); });
+addEventListener('pointerup', () => { dragging = false; });
+cv.addEventListener('contextmenu', e => { e.preventDefault(); cancelHold(); closePop(); });
 addEventListener('keydown', e => {
-  if (!$('repOv').hidden) { if (e.key === '1' || e.key === '2') { const c = window.__pick[+e.key - 1]; if (c) choose(c); } return; }
+  if (!$('repOv').hidden) { if (e.key === '1' || e.key === '2') { const c = pick[+e.key - 1]; if (c) choose(c); } return; }
+  const k = e.key.toLowerCase();
   if (e.code === 'Space') { e.preventDefault(); S.paused = !S.paused; }
-  else if (e.key === 'Escape') cancelHold();
+  else if (k === 'r' || k === 'ㄱ') setTool(tool === 'road' ? 'sel' : 'road');
+  else if (k === 'e' || k === 'ㄷ') setTool(tool === 'erase' ? 'sel' : 'erase');
+  else if (k === 's' || k === 'ㄴ') setTool('sel');
+  else if (e.key === 'Escape') { cancelHold(); closePop(); setTool('sel'); }
 });
-$('pause').onclick = () => { S.paused = !S.paused; };
+$('tSel').onclick = () => setTool('sel'); $('tRoad').onclick = () => setTool('road'); $('tErase').onclick = () => setTool('erase'); $('tPause').onclick = () => { S.paused = !S.paused; };
 
-// 확인용 봇: 카드 첫 장, 새 방은 빈자리 아무 데나
-window.__sim = sec => { const dt = 0.1, out = []; for (let k = 0; k < sec / dt; k++) { step(dt); if (!$('repOv').hidden) { out.push(`day${S.day} done${dayStat.done} fails${dayStat.fails} over${dayStat.overflow} mood${Math.round(S.mood)} crew${crew.length} worst:${(Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0] || ['-'])[0]}`); choose(window.__pick[0]); } if (held) { outer: for (let y = 0; y < GH; y++) for (let x = 2; x < GW - 2; x++) if (canPlace(held, x, y)) { hover = [x, y]; drop(); break outer; } } } return out.join('\n'); };
+// 확인용 봇: 카드 첫 장, 새 방은 길 옆 빈 칸에
+window.__sim = sec => { const dt = 0.1, out = []; for (let k = 0; k < sec / dt; k++) { step(dt); if (!$('repOv').hidden) { const w = Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0]; out.push(`day${S.day} done${dayStat.done} avg${(dayStat.wait / Math.max(1, dayStat.done)).toFixed(1)} fails${dayStat.fails} over${dayStat.overflow} mood${Math.round(S.mood)} crew${crew.length} worst:${w ? w[0] + Math.round(w[1]) : '-'} stuck:${JSON.stringify(dayStat.stuck)}`); choose(pick[0]); } while (held) { let ok = false; for (let y = 0; y < GH && !ok; y++) for (let x = 1; x < GW - 1 && !ok; x++) if (canPlace(x, y) && [[0, 1], [0, -1]].some(([dx, dy]) => inb(x + dx, y + dy) && road[(y + dy) * GW + x + dx])) ok = drop(x, y); if (!ok) break; } } return out.join('\n'); };
 
-buildFloor(); buildLegend();
+buildLegend();
 let last = performance.now(), labT = 0;
-function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; step(dt); draw(now / 1000); labT -= dt; if (labT <= 0) { labT = 0.2; renderLabels(); } renderHud(); requestAnimationFrame(frame); }
+function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; step(dt); draw(now / 1000); labT -= dt; if (labT <= 0) { labT = 0.15; renderLabels(); } renderHud(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 </script>
