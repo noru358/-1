@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 @font-face { font-family: "Galmuri11"; src: url(data:font/woff2;base64,__FONT__) format("woff2"); font-display: block; }
-/* 타일 격자 회로판: 위 상태 줄, 가운데 판(16×9칸), 아래 도구·방송·하루 보고. 방 이름과 설정 창은 판 위 HTML. */
+/* 타일 회로판(16×9) + 위 목표·지표 줄 + 아래 도구, 꼬물이 목록, 방송 띠. 하루 보고는 종이. */
 :root {
   --bg: #12101a; --panel: #1c1928; --line: #363049; --fg: #ece6f5; --dim: #9a93ad;
   --acc: #7fe0d0; --warm: #f2b46d; --hot: #ff6a5a; --paper: #e9e2cc; --ink: #2a2338; --inkdim: #6b6258;
@@ -18,20 +18,24 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .wrap { max-width: 1000px; margin: 0 auto; display: grid; gap: 8px; }
 header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 6px 16px; }
 h1 { margin: 0; font-size: 20px; font-weight: 400; }
-.stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-variant-numeric: tabular-nums; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums; }
 .stats span { color: var(--dim); }
 .stats b { color: var(--acc); font-weight: 400; }
-.stats .mood { color: var(--warm); }
+.goal { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.goal b { font-weight: 400; color: var(--warm); }
+.goal .bar { flex: 1; min-width: 80px; height: 5px; background: #2a2538; }
+.goal .bar i { display: block; height: 100%; background: var(--warm); }
 .daybar { height: 4px; background: var(--panel); }
 .daybar i { display: block; height: 100%; background: var(--acc); width: 0; }
 .screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 16 / 9; max-width: 100%; }
 .screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none; }
 .labels { position: absolute; inset: 0; pointer-events: none; }
 .lab { position: absolute; transform: translate(-50%, 0); font-size: 10px; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; white-space: nowrap; line-height: 1.1; }
-.badge { position: absolute; transform: translate(-50%, -100%); background: var(--hot); color: #fff; font-size: 10px; padding: 0 4px; white-space: nowrap; }
-.badge.q { background: var(--warm); color: var(--ink); }
+.badge { position: absolute; transform: translate(-50%, -100%); background: var(--warm); color: var(--ink); font-size: 10px; padding: 0 4px; white-space: nowrap; }
+.badge.hot { background: var(--hot); color: #fff; animation: blink .6s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .4; } }
 .mode { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); background: var(--warm); color: var(--ink); padding: 0 10px; font-size: 12px; pointer-events: none; white-space: nowrap; }
-.pop { position: absolute; background: var(--paper); color: var(--ink); padding: 8px 10px; font-size: 12px; display: grid; gap: 6px; z-index: 5; min-width: 160px; box-shadow: 0 4px 0 rgba(0,0,0,.4); }
+.pop { position: absolute; background: var(--paper); color: var(--ink); padding: 8px 10px; font-size: 12px; display: grid; gap: 6px; z-index: 5; min-width: 170px; max-width: 260px; box-shadow: 0 4px 0 rgba(0,0,0,.4); }
 .pop b { font-weight: 400; font-size: 13px; }
 .pop .row { display: flex; flex-wrap: wrap; gap: 4px; }
 .pop button { background: #d9d0b4; border: 1px solid var(--inkdim); padding: 1px 6px; cursor: pointer; color: var(--ink); }
@@ -43,14 +47,23 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .tools kbd { font: inherit; color: var(--fg); border: 1px solid var(--line); padding: 0 4px; margin-right: 4px; }
 .tools .inv { color: var(--dim); font-size: 12px; margin-left: auto; }
 .tools .inv b { color: var(--fg); font-weight: 400; }
-.ticker { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; white-space: nowrap; overflow: hidden; color: var(--dim); }
+.low { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; }
+.ticker { background: var(--panel); border: 1px solid var(--line); padding: 4px 10px; color: var(--dim); min-height: 2.2em; }
 .ticker b { color: var(--fg); font-weight: 400; }
+.crew { background: var(--panel); border: 1px solid var(--line); padding: 6px 10px; font-size: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 12px; align-content: start; }
+.crew div { display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; overflow: hidden; }
+.crew span { color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
+.crew span.idle { color: var(--warm); }
+.crew span.stuck { color: var(--hot); }
 .legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: var(--dim); }
-.legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; vertical-align: -1px; border: 1px solid #000; }
+.legend i { display: inline-block; width: 8px; height: 8px; margin-right: 2px; vertical-align: 0; border: 1px solid #000; }
 .ov { position: fixed; inset: 0; background: rgba(10,8,18,.8); display: grid; place-items: center; z-index: 20; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
-.report { background: var(--paper); color: var(--ink); width: min(560px, 100%); padding: 14px 18px; display: grid; gap: 6px; max-height: 100%; overflow: auto; }
+.report { background: var(--paper); color: var(--ink); width: min(580px, 100%); padding: 14px 18px; display: grid; gap: 6px; max-height: 100%; overflow: auto; }
 .report h2 { margin: 0; font-size: 18px; font-weight: 400; }
-.report .row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--inkdim); font-variant-numeric: tabular-nums; }
+.report table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.report td, .report th { border-bottom: 1px dashed var(--inkdim); padding: 2px 4px; text-align: right; font-weight: 400; }
+.report td:first-child, .report th:first-child { text-align: left; }
+.report .up { color: #2a7a4a; } .report .down { color: #a83a3a; }
 .report p { margin: 0; color: var(--inkdim); }
 .report .diag { color: var(--ink); background: #fff3d0; padding: 6px 8px; }
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
@@ -58,15 +71,17 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .card:hover { background: #fff6dc; }
 .card b { font-weight: 400; font-size: 14px; }
 .card i { font-style: normal; font-size: 12px; color: var(--inkdim); }
-.help { font-size: 12px; color: var(--dim); margin: 0; max-width: 84ch; }
-@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+.help { font-size: 12px; color: var(--dim); margin: 0; max-width: 90ch; }
+@media (max-width: 640px) { .cards, .low { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .badge.hot { animation: none; } }
 </style>
 
 <div class="wrap">
   <header>
     <h1>꼬물이 에이전트 회사</h1>
-    <div class="stats"><span id="day">1일째</span><span>처리 <b id="done">0</b></span><span class="mood" id="mood">인간 기분 70</span></div>
+    <div class="stats"><span id="day">1일째</span><span>오늘 처리 <b id="done">0</b></span><span id="avg">평균 -</span><span id="qual">검수 통과 -</span><span id="cost">유지비 -</span></div>
   </header>
+  <div class="goal" id="goal"></div>
   <div class="daybar"><i id="dayFill"></i></div>
   <div class="screen" id="screen"><canvas id="cv" width="384" height="216"></canvas><div class="labels" id="labels"></div><div class="mode" id="mode" hidden></div><div class="pop" id="pop" hidden></div></div>
   <div class="tools">
@@ -76,53 +91,72 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
     <button type="button" id="tPause"><kbd>Space</kbd>멈춤</button>
     <span class="inv" id="inv"></span>
   </div>
-  <div class="ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div>
+  <div class="low"><div class="ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div><div class="crew" id="crew"></div></div>
   <div class="legend" id="legend"></div>
-  <p class="help">꼬물이는 <b>길</b> 위로만 다닙니다. 인간의 요청은 처음엔 무슨 일인지 모르는 회색 꾸러미로 접수함에 쌓이고, <b>분류대</b>를 거쳐야 종류(색)가 정해집니다. 그 뒤 종류마다 정해진 방을 차례로 돌고 발송구로 나갑니다. 방을 누르면 그 방이 받을 요청 종류를 고르거나 옮길 수 있습니다. 하루는 1분이고, 끝나면 가장 막힌 곳을 알려 주고 카드 두 장 중 하나를 고릅니다.</p>
+  <p class="help">인간의 주문서가 왼쪽 <b>접수함</b>에 쌓입니다. 꼬물이가 주문서를 <b>편집실</b>로 옮기면, 다른 꼬물이들이 그 주문에 필요한 <b>부품</b>(자료·글·그림·표)을 각 방에서 만들어 편집실로 가져옵니다. 부품이 다 모이면 편집실에서 합치고, <b>검수대</b>를 거쳐 <b>발송구</b>로 보냅니다. 꼬물이는 깔아 둔 <b>길</b>로만 다닙니다. 방을 누르면 옮기거나 받을 주문을 고를 수 있습니다.</p>
 </div>
 <div class="ov" id="repOv" hidden><div class="report" role="dialog" aria-label="하루 보고" id="rep"></div></div>
 
 <script>
 'use strict';
-// ───────── 표 ─────────
-const T = 24, GW = 16, GH = 9, W = GW * T, H = GH * T, DAY = 60;
+// ═════════ 표: 숫자와 글은 모두 여기 ═════════
+const T = 24, GW = 16, GH = 9, W = GW * T, H = GH * T;
+const DAY = 60, INBOX_CAP = 8, EDIT_SLOTS = 3, QA_FAIL = 0.18, ROOM_UPKEEP = 3;
+// 부품: 어느 방에서 만들어지나
+const PARTS = {
+  doc:  { n: '자료', col: '#8ac8ff', room: 'search' },
+  text: { n: '글',   col: '#f4f1ff', room: 'write' },
+  pic:  { n: '그림', col: '#ff9ad0', room: 'draw' },
+  tab:  { n: '표',   col: '#f0e070', room: 'calc' },
+};
+// 방: work = 기본 일하는 시간(초)
 const KINDS = {
-  in:     { n: '접수함', col: '#3e5878', top: '#8ac8ff', work: 0 },
-  out:    { n: '발송구', col: '#335a4c', top: '#7fe0d0', work: 0 },
-  sort:   { n: '분류대', col: '#4a4466', top: '#c8b8ff', work: 0.8 },
-  search: { n: '검색실', col: '#34406a', top: '#9ab0ff', work: 2.0 },
-  write:  { n: '작성실', col: '#5e5032', top: '#ffd38a', work: 2.4 },
-  draw:   { n: '그림실', col: '#5e3450', top: '#ff9ad0', work: 3.0 },
-  calc:   { n: '계산실', col: '#545228', top: '#f0e070', work: 2.0 },
-  qa:     { n: '검수대', col: '#583434', top: '#ff8a7a', work: 1.1 },
+  in:     { n: '접수함', col: '#3e5878', top: '#8ac8ff' },
+  out:    { n: '발송구', col: '#335a4c', top: '#7fe0d0' },
+  search: { n: '검색실', col: '#34406a', top: '#9ab0ff', work: 2.0, part: 'doc' },
+  write:  { n: '작성실', col: '#5e5032', top: '#ffd38a', work: 2.4, part: 'text' },
+  draw:   { n: '그림실', col: '#5e3450', top: '#ff9ad0', work: 3.0, part: 'pic' },
+  calc:   { n: '계산실', col: '#545228', top: '#f0e070', work: 2.0, part: 'tab' },
+  edit:   { n: '편집실', col: '#3a4a3a', top: '#a8e0a8', work: 1.0 },   // + 부품 하나당 0.4초
+  qa:     { n: '검수대', col: '#583434', top: '#ff8a7a', work: 1.0 },
 };
-const REQ = {
-  ask:    { n: '질문', col: '#8ac8ff', route: ['search', 'write', 'qa'], day: 1, say: ['"이거 왜 안 돼?"', '"점심 뭐 먹지"', '"이메일 좀 다듬어 줘"', '"이 단어 뜻이 뭐야"'] },
-  pic:    { n: '그림', col: '#ff9ad0', route: ['search', 'draw', 'qa'], day: 2, say: ['"고양이 그려 줘"', '"발표 표지 만들어 줘"', '"이 사진 배경 지워 줘"'] },
-  num:    { n: '계산', col: '#f0e070', route: ['calc', 'qa'], day: 3, say: ['"이번 달 가계부 정리"', '"더치페이 계산해 줘"', '"이 표 합계 내 줘"'] },
-  report: { n: '보고서', col: '#8fe0a0', route: ['search', 'calc', 'write', 'qa'], day: 4, say: ['"내일까지 보고서..."', '"시장 조사 좀 해 줘"', '"회의 자료 만들어 줘"'] },
+// 주문 = 부품 조립식 (shapez의 모양, Little Big Workshop의 제품)
+const RECIPES = {
+  answer: { n: '질문 답변', parts: { doc: 1, text: 1 }, say: ['"이거 왜 안 돼?"', '"이메일 좀 다듬어 줘"', '"점심 뭐 먹지"'] },
+  art:    { n: '그림 요청', parts: { doc: 1, pic: 1 }, say: ['"고양이 그려 줘"', '"프로필 사진 만들어 줘"'] },
+  budget: { n: '가계부',   parts: { tab: 2 }, say: ['"이번 달 가계부 정리"', '"더치페이 계산해 줘"'] },
+  slides: { n: '발표 자료', parts: { doc: 2, tab: 1, pic: 1 }, say: ['"내일 발표인데..."', '"회의 자료 만들어 줘"'] },
+  report: { n: '보고서',   parts: { doc: 2, tab: 1, text: 1 }, say: ['"시장 조사 좀 해 줘"', '"내일까지 보고서..."'] },
+  blog:   { n: '블로그 글', parts: { text: 2, pic: 1 }, say: ['"여행 후기 써 줘"', '"맛집 리뷰 올려 줘"'] },
 };
-const NEWROOM = { 2: 'draw', 3: 'calc' };
+// 목표 = 해금 (shapez의 허브 목표)
+const GOALS = [
+  { need: { answer: 8 },  gives: { room: 'draw', recipe: 'art' },     n: '그림실이 열리고 그림 요청이 들어온다' },
+  { need: { art: 6 },     gives: { room: 'calc', recipe: 'budget' },  n: '계산실이 열리고 가계부 주문이 들어온다' },
+  { need: { budget: 6 },  gives: { room: 'edit', recipe: 'slides' },  n: '편집실 하나 더, 발표 자료 주문' },
+  { need: { slides: 5 },  gives: { room: 'search', recipe: 'report' }, n: '검색실 하나 더, 보고서 주문' },
+  { need: { report: 5 },  gives: { room: 'write', recipe: 'blog' },    n: '작성실 하나 더, 블로그 글 주문' },
+  { need: { blog: 8, slides: 8, report: 8 }, gives: {}, n: '이 컴퓨터의 마지막 목표' },
+];
 const NAMES = ['꼬미', '물이', '삑이', '도리', '콩이', '비트', '바이', '클로', '모리', '찌리', '토리', '나노', '포포', '두두'];
 const TINTS = ['#f2b46d', '#9fd88a', '#8ac8ff', '#f2a0c8', '#e8d870', '#c8a8ff', '#ff9a6a', '#7fe0d0', '#f4f1ff', '#d8b890', '#b0e0ff', '#ffc0a0', '#a0f0c0', '#ffb0d8'];
 
-// ───────── 상태 ─────────
-const S = { day: 1, t: 0, done: 0, mood: 70, qaFail: 0.2, walk: 1, inboxCap: 10, roads: 0, paused: false, inDay: true };
-const road = new Uint8Array(GW * GH);       // 1 = 길
-let sts = [], crew = [], inbox = [], fx = [], uid = 0, dayStat = newDayStat();
-function newDayStat() { return { done: 0, wait: 0, fails: 0, overflow: 0, qwait: {}, stuck: {} }; }
+// ═════════ 상태 ═════════
+const S = { day: 1, t: 0, walk: 1, qaFail: QA_FAIL, inboxCap: INBOX_CAP, roads: 0, paused: false, inDay: true, goal: 0, recipes: ['answer'], delivered: {}, best: null, yday: null };
+const road = new Uint8Array(GW * GH);
+let sts = [], crew = [], orders = [], inbox = [], fx = [], uid = 0, D = newDay();
+function newDay() { return { done: 0, wait: 0, qaPass: 0, qaFail: 0, lost: 0, qwait: {}, stuck: {} }; }
 const at = (x, y) => sts.find(s => !s.held && s.x === x && s.y === y);
 const inb = (x, y) => x >= 0 && y >= 0 && x < GW && y < GH;
-function addSt(kind, x, y) { const s = { id: uid++, kind, x, y, busy: null, queue: [], accept: null, fixed: kind === 'in' || kind === 'out' }; sts.push(s); return s; }
-// 처음 판: 가운데 길 한 줄과 방 몇 개(모두 옮길 수 있음)
+function addSt(kind, x, y) { const s = { id: uid++, kind, x, y, busy: null, queue: [], accept: null, orders: [], fixed: kind === 'in' || kind === 'out' }; sts.push(s); return s; }
 addSt('in', 0, 4); addSt('out', 15, 4);
 for (let x = 1; x <= 14; x++) road[4 * GW + x] = 1;
-addSt('sort', 2, 3); addSt('search', 5, 3); addSt('write', 8, 5); addSt('qa', 11, 3);
+addSt('search', 3, 3); addSt('write', 6, 5); addSt('edit', 9, 3); addSt('qa', 12, 5);
 S.roads = 30 - 14;
-function addCrew() { const i = crew.length; crew.push({ i, name: NAMES[i % NAMES.length], tint: TINTS[i % TINTS.length], x: (2 + i % 10) * T + 12, y: 4 * T + 18, path: [], fin: null, st: 'idle', tk: null, s: null, wt: 0, face: 1, ph: Math.random() * 6, idleT: Math.random() * 2, bub: '' }); }
-for (let k = 0; k < 6; k++) addCrew();
+function addCrew() { const i = crew.length; crew.push({ i, name: NAMES[i % NAMES.length], tint: TINTS[i % TINTS.length], x: (2 + i % 10) * T + 12, y: 4 * T + 18, path: [], fin: null, acts: [], job: null, st: 'idle', s: null, wt: 0, carry: null, face: 1, ph: Math.random() * 6, look: 0, why: '', skill: {}, retry: 0 }); }
+for (let k = 0; k < 5; k++) addCrew();
 
-// ───────── 길 찾기: 길 칸만 지나고, 마지막 한 칸(방)에만 들어간다 ─────────
+// ═════════ 길 찾기: 길 칸만 지나고 마지막 한 칸(방)에만 들어간다 ═════════
 function bfs(sx, sy, tx, ty) {
   if (sx === tx && sy === ty) return [];
   const prev = new Int16Array(GW * GH).fill(-1), s0 = sy * GW + sx, goal = ty * GW + tx, q = [s0]; prev[s0] = s0;
@@ -130,7 +164,7 @@ function bfs(sx, sy, tx, ty) {
     const c = q[h], cx = c % GW, cy = (c / GW) | 0;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const nx = cx + dx, ny = cy + dy; if (!inb(nx, ny)) continue; const n = ny * GW + nx;
-      if (prev[n] >= 0) continue; if (n !== goal && !road[n]) continue; prev[n] = c;
+      if (prev[n] >= 0 || (n !== goal && !road[n])) continue; prev[n] = c;
       if (n === goal) { const out = []; let k = n; while (k !== s0) { out.push([k % GW, (k / GW) | 0]); k = prev[k]; } return out.reverse(); }
       q.push(n);
     }
@@ -139,169 +173,200 @@ function bfs(sx, sy, tx, ty) {
 }
 const tileOf = c => [Math.max(0, Math.min(GW - 1, Math.floor(c.x / T))), Math.max(0, Math.min(GH - 1, Math.floor((c.y - 6) / T)))];
 const center = (x, y) => [x * T + 12, y * T + 18];
-const accepts = (s, type) => !s.accept || !type || s.accept.has(type);
-function route(c, s) { const [sx, sy] = tileOf(c); const p = bfs(sx, sy, s.x, s.y); if (!p) return false; c.fin = p.pop() || [s.x, s.y]; c.path = p; c.s = s; return true; }
-function pickSt(c, kind) {
-  const [sx, sy] = tileOf(c); let best = null, bs = 1e9;
-  for (const s of sts) if (!s.held && s.kind === kind && accepts(s, c.tk && c.tk.type)) { const p = bfs(sx, sy, s.x, s.y); if (!p) continue; const sc = p.length / (2.6 * S.walk) + (s.queue.length + (s.busy ? 1 : 0)) * KINDS[kind].work; if (sc < bs) { bs = sc; best = s; } }
+const reach = (c, s) => { const [x, y] = tileOf(c); return bfs(x, y, s.x, s.y); };
+const lvl = (c, kind) => Math.min(3, Math.floor((c.skill[kind] || 0) / 5));
+function bestRoom(c, kind) { // 가까움 + 줄 길이 (Two Point Hospital: 방을 모으면 덜 걷는다)
+  let best = null, bs = 1e9;
+  for (const s of sts) if (!s.held && s.kind === kind) { const p = reach(c, s); if (!p) continue; const sc = p.length / (2.6 * S.walk) + (s.queue.length + (s.busy ? 1 : 0)) * (KINDS[kind].work || 1); if (sc < bs) { bs = sc; best = s; } }
   return best;
 }
 
-// ───────── 일의 흐름 ─────────
-function nextKind(tk) { if (!tk.type) return 'sort'; const r = REQ[tk.type].route; return tk.step < r.length ? r[tk.step] : 'out'; }
-function goNext(c) {
-  const kind = nextKind(c.tk), s = pickSt(c, kind);
-  if (!s) { c.st = 'stuck'; c.need = kind; c.bub = '?'; dayStat.stuck[kind] = (dayStat.stuck[kind] || 0) + 1; if (Math.random() < 0.3) ticker(`<b>${c.name}</b> ${KINDS[kind].n}로 가는 길이 없어요.`); return; }
-  c.bub = ''; c.st = 'walk'; route(c, s);
+// ═════════ 일감: 고르는 순서 = 합치기 > 부품 > 주문서 옮기기 (끝낼 것부터) ═════════
+const partsLeft = o => Object.entries(o.need).filter(([p, n]) => n - (o.have[p] || 0) - (o.making[p] || 0) > 0).map(([p]) => p);
+const isReady = o => o.edit && Object.entries(o.need).every(([p, n]) => (o.have[p] || 0) >= n);
+function editFor(c, o) { let best = null, bl = 1e9; for (const s of sts) if (!s.held && s.kind === 'edit' && s.orders.length < EDIT_SLOTS && (!s.accept || s.accept.has(o.r))) { const p = reach(c, s); if (p && p.length < bl) { bl = p.length; best = s; } } return best; }
+function findJob(c) {
+  // 1) 부품이 다 모인 주문 합치기
+  for (const o of orders) if (o.state === 'placed' && !o.asm && isReady(o) && reach(c, o.edit)) { o.asm = c; o.state = 'asm'; return { kind: 'asm', o, acts: [{ to: () => o.edit, act: 'work' }, { to: () => bestRoom(c, 'qa'), act: 'qa' }, { to: () => sts.find(s => s.kind === 'out'), act: 'deliver' }] }; }
+  // 2) 부품 만들기: 그 꼬물이가 잘하는 부품을 먼저
+  const opts = [];
+  for (const o of orders) if (o.state === 'placed') for (const p of partsLeft(o)) { const r = bestRoom(c, PARTS[p].room); if (r && reach(c, o.edit)) opts.push({ o, p, sc: o.t0 - lvl(c, PARTS[p].room) * 6 }); else noteStuck(PARTS[p].room); }
+  if (opts.length) { opts.sort((a, b) => a.sc - b.sc); const { o, p } = opts[0]; o.making[p] = (o.making[p] || 0) + 1; return { kind: 'part', o, p, acts: [{ to: () => bestRoom(c, PARTS[p].room), act: 'work' }, { to: () => o.edit, act: 'drop' }] }; }
+  // 3) 주문서를 편집실로 (배부)
+  const inn = sts.find(s => s.kind === 'in');
+  for (const o of inbox) if (!o.by) { const e = editFor(c, o); if (!e) continue; if (!reach(c, inn)) { noteStuck('in'); break; } o.by = c; o.edit = e; e.orders.push(o); return { kind: 'disp', o, acts: [{ to: () => inn, act: 'take' }, { to: () => o.edit, act: 'drop' }] }; }
+  return null;
 }
-// 방 바로 앞 길 칸에 도착: 방이 비면 들어가고, 아니면 그 자리에서 줄
+function noteStuck(kind) { D.stuck[kind] = (D.stuck[kind] || 0) + 0.02; }
+
+// ═════════ 꼬물이 한 걸음 ═════════
+function startAct(c) {
+  const a = c.acts[0]; if (!a) { endJob(c); return; }
+  const s = a.to();
+  if (!s || s.held) { c.st = 'stuck'; c.why = '갈 방 없음'; c.retry = 0.5; return; }
+  const p = reach(c, s); if (!p) { c.st = 'stuck'; c.why = `${KINDS[s.kind].n} 가는 길 없음`; c.retry = 0.5; D.stuck[s.kind] = (D.stuck[s.kind] || 0) + 1; return; }
+  c.s = s; c.fin = p.pop() || [s.x, s.y]; c.path = p; c.st = 'walk'; c.why = '';
+}
 function atDoor(c) {
-  const s = c.s;
-  if (!s || s.held) { c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; return; }
-  if (s.kind === 'in') { const tk = inbox.find(t => t.by === c); if (!tk) { c.st = 'idle'; return; } inbox.splice(inbox.indexOf(tk), 1); c.tk = tk; c.path = [c.fin]; c.st = 'enter'; return; }
-  if (s.kind === 'out') { c.path = [c.fin]; c.st = 'enter'; return; }
-  if (!s.busy) { s.busy = c; c.path = [c.fin]; c.st = 'enter'; }
-  else { if (!s.queue.includes(c)) s.queue.push(c); c.st = 'queue'; }
+  const a = c.acts[0], s = c.s;
+  if (!s || s.held) { startAct(c); return; }
+  if (a.act === 'work' || a.act === 'qa') { if (!s.busy) { s.busy = c; c.path = [c.fin]; c.st = 'enter'; } else { if (!s.queue.includes(c)) s.queue.push(c); c.st = 'queue'; } return; }
+  doInstant(c, a);
 }
-function inside(c) {
-  const s = c.s;
-  if (s.kind === 'in') { c.path = []; c.st = 'leave'; c.after = 'next'; return; }
-  if (s.kind === 'out') { deliver(c); return; }
-  c.st = 'work'; c.wt = KINDS[s.kind].work;
+function doInstant(c, a) {
+  const j = c.job, o = j.o;
+  if (a.act === 'take') { inbox.splice(inbox.indexOf(o), 1); c.carry = { slip: o }; }
+  else if (a.act === 'drop' && j.kind === 'disp') { o.state = 'placed'; c.carry = null; fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .5, col: '#e9e2cc' }); }
+  else if (a.act === 'drop' && j.kind === 'part') { o.making[j.p]--; o.have[j.p] = (o.have[j.p] || 0) + 1; c.carry = null; fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .5, col: PARTS[j.p].col }); }
+  else if (a.act === 'deliver') { deliver(c, o); }
+  c.acts.shift(); startAct(c);
 }
-function finish(c) {
-  const s = c.s, tk = c.tk; s.busy = null;
-  if (s.kind === 'sort') { tk.type = tk.hidden; fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .6, col: REQ[tk.type].col }); }
-  else if (s.kind === 'qa' && Math.random() < S.qaFail) { tk.step = Math.max(0, tk.step - 1); dayStat.fails++; fx.push({ k: 'x', x: c.x, y: c.y - 20, t: 0, life: 1 }); }
-  else tk.step++;
+function workTime(c, s) { const base = s.kind === 'edit' ? KINDS.edit.work + 0.4 * Object.values(c.job.o.need).reduce((a, b) => a + b, 0) : KINDS[s.kind].work; return base * (1 - 0.12 * lvl(c, s.kind)); }
+function finishWork(c) {
+  const s = c.s, a = c.acts[0], j = c.job; s.busy = null;
+  c.skill[s.kind] = (c.skill[s.kind] || 0) + 1;
   if (s.queue.length) { const n = s.queue.shift(); s.busy = n; n.path = [n.fin]; n.st = 'enter'; }
-  goNext(c);
+  if (j.kind === 'part') c.carry = { part: j.p };
+  if (j.kind === 'asm' && s.kind === 'edit') { c.carry = { result: j.o }; j.o.edit.orders = j.o.edit.orders.filter(x => x !== j.o); j.o.state = 'carry'; }
+  if (a.act === 'qa') {
+    if (Math.random() < S.qaFail) { D.qaFail++; fx.push({ k: 'x', x: c.x, y: c.y - 20, t: 0, life: 1 }); c.acts.shift(); c.acts.unshift({ to: () => bestRoom(c, 'edit'), act: 'rework' }, { to: () => bestRoom(c, 'qa'), act: 'qa' }); startAct(c); return; }
+    D.qaPass++;
+  }
+  c.acts.shift(); startAct(c);
 }
-function deliver(c) {
-  const tk = c.tk, wait = S.t - tk.t0;
-  S.done++; dayStat.done++; dayStat.wait += wait;
-  S.mood = Math.max(0, Math.min(100, S.mood + (wait < 18 ? 1.2 : wait < 32 ? 0.2 : -1.5)));
-  fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .8, col: REQ[tk.type].col });
-  c.tk = null; c.s = null; c.st = 'idle'; c.idleT = 0;
+function deliver(c, o) {
+  const wait = S.t - o.t0; D.done++; D.wait += wait; o.state = 'done';
+  S.delivered[o.r] = (S.delivered[o.r] || 0) + 1; orders.splice(orders.indexOf(o), 1);
+  fx.push({ k: 'pop', x: c.x, y: c.y - 20, t: 0, life: .8, col: '#ffe27a' }); c.carry = null; checkGoal();
 }
+function endJob(c) { c.job = null; c.acts = []; c.s = null; c.st = 'idle'; c.look = 0; }
 function stepCrew(c, dt) {
   c.ph += dt;
-  if (c.st === 'queue') { dayStat.qwait[c.s.kind] = (dayStat.qwait[c.s.kind] || 0) + dt; return; }
+  if (c.st === 'queue') { D.qwait[c.s.kind] = (D.qwait[c.s.kind] || 0) + dt; return; }
   if (c.path.length) {
     const [tx, ty] = c.path[0], [px, py] = center(tx, ty), dx = px - c.x, dy = py - c.y, d = Math.hypot(dx, dy), v = 62 * S.walk * dt;
     if (Math.abs(dx) > .5) c.face = dx > 0 ? 1 : -1;
-    if (d <= v) { c.x = px; c.y = py; c.path.shift(); if (!c.path.length) { if (c.st === 'walk') atDoor(c); else if (c.st === 'enter') inside(c); } }
-    else { c.x += dx / d * v; c.y += dy / d * v; }
+    if (d <= v) { c.x = px; c.y = py; c.path.shift(); if (!c.path.length) arrived(c); } else { c.x += dx / d * v; c.y += dy / d * v; }
     return;
   }
-  if (c.st === 'walk') { atDoor(c); return; }
-  if (c.st === 'enter') { inside(c); return; }
-  if (c.st === 'leave') { goNext(c); return; }
-  if (c.st === 'work') { c.wt -= dt; if (Math.random() < dt * 4) fx.push({ k: 'spark', x: c.x + (Math.random() - .5) * 12, y: c.y - 16, t: 0, life: .4, col: KINDS[c.s.kind].top }); if (c.wt <= 0) finish(c); return; }
-  if (c.st === 'stuck') { const s = pickSt(c, c.need); if (s) { c.bub = ''; c.st = 'walk'; route(c, s); } return; }
+  if (c.st === 'walk' || c.st === 'enter') { arrived(c); return; }
+  if (c.st === 'work') { c.wt -= dt; if (Math.random() < dt * 4) fx.push({ k: 'spark', x: c.x + (Math.random() - .5) * 12, y: c.y - 16, t: 0, life: .4, col: KINDS[c.s.kind].top }); if (c.wt <= 0) finishWork(c); return; }
+  if (c.st === 'stuck') { c.retry -= dt; if (c.retry <= 0) startAct(c); return; }
   if (c.st === 'idle') {
-    const tk = inbox.find(t => !t.by), inn = sts.find(s => s.kind === 'in');
-    if (tk) { const [sx, sy] = tileOf(c); if (bfs(sx, sy, inn.x, inn.y)) { tk.by = c; c.st = 'walk'; route(c, inn); return; } }
-    c.idleT -= dt;
-    if (c.idleT <= 0) { c.idleT = 1.5 + Math.random() * 3; const [sx, sy] = tileOf(c); const opts = []; for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) if (inb(sx + dx, sy + dy) && road[(sy + dy) * GW + sx + dx]) opts.push([sx + dx, sy + dy]); if (opts.length) { const o = opts[Math.floor(Math.random() * opts.length)]; c.path = bfs(sx, sy, o[0], o[1]) || []; } }
+    c.look -= dt; if (c.look > 0) return; c.look = 0.3;
+    const j = findJob(c); if (j) { c.job = j; c.acts = j.acts; c.why = ''; startAct(c); return; }
+    c.why = '일 없음';
+    if (Math.random() < 0.25) { const [sx, sy] = tileOf(c), opts = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -2; dx <= 2; dx++) if (inb(sx + dx, sy + dy) && road[(sy + dy) * GW + sx + dx]) opts.push([sx + dx, sy + dy]); if (opts.length) { const o = opts[Math.floor(Math.random() * opts.length)]; c.path = bfs(sx, sy, o[0], o[1]) || []; } }
   }
 }
-// 판이 바뀌면(길, 방) 가던 꼬물이는 길을 다시 찾는다
+function arrived(c) { if (c.st === 'walk') atDoor(c); else if (c.st === 'enter') { c.st = 'work'; c.wt = workTime(c, c.s); } }
+
+// 판이 바뀌면 길을 다시 찾는다. 방을 들면 그 방에 걸린 일은 되돌린다(교착 방지)
+function nearestRoad(x, y) { for (let r = 1; r < 8; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (inb(x + dx, y + dy) && road[(y + dy) * GW + x + dx]) return [x + dx, y + dy]; return null; }
 function replan() {
   for (const c of crew) {
     const [sx, sy] = tileOf(c);
-    if (!road[sy * GW + sx] && !at(sx, sy)) { const f = nearestRoad(sx, sy); if (f) { [c.x, c.y] = center(f[0], f[1]); } }
-    if (c.st === 'walk' && c.s) { if (c.s.held || !route(c, c.s)) { c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; c.path = []; } }
-    else if (c.st === 'idle') c.path = [];
+    if (!road[sy * GW + sx] && !at(sx, sy)) { const f = nearestRoad(sx, sy); if (f) [c.x, c.y] = center(f[0], f[1]); }
+    if (c.st === 'walk') startAct(c); else if (c.st === 'idle') c.path = [];
   }
 }
-function nearestRoad(x, y) { for (let r = 1; r < 8; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (inb(x + dx, y + dy) && road[(y + dy) * GW + x + dx]) return [x + dx, y + dy]; return null; }
-function release(s) { // 방을 들면 거기서 일하거나 줄 서던 꼬물이는 다른 곳을 찾는다
-  for (const c of crew) if (c.s === s && ['work', 'queue', 'enter', 'walk'].includes(c.st)) { const [sx, sy] = tileOf(c); if (c.st === 'work' || c.st === 'enter') { const f = nearestRoad(sx, sy); if (f) [c.x, c.y] = center(f[0], f[1]); } c.path = []; c.st = c.tk ? 'stuck' : 'idle'; c.need = c.tk ? nextKind(c.tk) : null; }
+function release(s) {
+  for (const c of crew) if (c.s === s && ['work', 'queue', 'enter', 'walk'].includes(c.st)) { const [sx, sy] = tileOf(c); const f = nearestRoad(sx, sy); if (f && !road[sy * GW + sx]) [c.x, c.y] = center(f[0], f[1]); c.path = []; c.st = 'stuck'; c.retry = 0.3; }
   s.busy = null; s.queue = [];
 }
 
-// 도착
+// ═════════ 주문 도착과 넘침 경고 ═════════
 let arrAcc = 0;
-const typesNow = () => Object.keys(REQ).filter(k => REQ[k].day <= S.day);
-function rate() { const ph = (S.t % DAY) / DAY; return (0.3 + 0.09 * (S.day - 1)) * (0.85 + 0.3 * Math.sin(ph * Math.PI * 2 - 1)); }
+function rate() { const ph = (S.t % DAY) / DAY; return (0.13 + 0.025 * (S.day - 1) + 0.02 * S.goal) * (0.85 + 0.3 * Math.sin(ph * Math.PI * 2 - 1)); }
 function spawn() {
-  const ty = typesNow(), hidden = ty[Math.floor(Math.random() * ty.length)];
-  if (inbox.length >= S.inboxCap) { S.mood = Math.max(0, S.mood - 2); dayStat.overflow++; if (Math.random() < 0.4) ticker('<b>인간</b> 대답이 없자 다른 탭을 열었다.'); return; }
-  inbox.push({ hidden, type: null, t0: S.t, step: 0, by: null });
-  if (Math.random() < 0.4) { const s = REQ[hidden].say; ticker(`<b>인간</b> ${s[Math.floor(Math.random() * s.length)]}`); }
+  const r = S.recipes[Math.floor(Math.random() * S.recipes.length)];
+  if (inbox.length >= S.inboxCap) { D.lost++; ticker('<b>인간</b> 대답이 없자 다른 AI를 열었다.'); return; }
+  const o = { id: uid++, r, need: RECIPES[r].parts, have: {}, making: {}, t0: S.t, state: 'inbox', edit: null, by: null, asm: null };
+  inbox.push(o); orders.push(o);
+  if (Math.random() < 0.45) { const s = RECIPES[r].say; ticker(`<b>인간</b> ${s[Math.floor(Math.random() * s.length)]}`); }
 }
 
-// ───────── 하루 끝 ─────────
-const CARDS = [
-  { n: '길 10칸', d: '깔 수 있는 길이 늘어난다.', f: () => { S.roads += 10; } },
-  { n: '꼬물이 둘', d: '일손이 늘어난다. 대신 길이 붐빈다.', f: () => { addCrew(); addCrew(); } },
-  { n: '검수 교육', d: '검수에서 틀리는 일이 40% 줄어든다.', f: () => { S.qaFail *= 0.6; } },
-  { n: '작은 운동화', d: '모두 30% 빨리 걷는다.', f: () => { S.walk *= 1.3; } },
-  { n: '큰 접수함', d: '요청을 6개 더 쌓아 둘 수 있다.', f: () => { S.inboxCap += 6; } },
-  { n: '분류대 하나 더', d: '분류 줄이 짧아진다.', st: 'sort' },
-  { n: '검색실 하나 더', d: '찾기 일을 나눠 맡는다.', st: 'search' },
-  { n: '작성실 하나 더', d: '쓰기 일을 나눠 맡는다.', st: 'write' },
-  { n: '검수대 하나 더', d: '확인 줄이 짧아진다.', st: 'qa' },
-  { n: '그림실 하나 더', d: '그리기 일을 나눠 맡는다.', st: 'draw', need: 2 },
-  { n: '계산실 하나 더', d: '계산 일을 나눠 맡는다.', st: 'calc', need: 3 },
+// ═════════ 목표 = 해금 ═════════
+let toPlace = [];
+function checkGoal() {
+  const g = GOALS[S.goal]; if (!g) return;
+  if (!Object.entries(g.need).every(([r, n]) => (S.delivered[r] || 0) >= n)) return;
+  S.goal++; S.delivered = {};
+  if (g.gives.recipe && !S.recipes.includes(g.gives.recipe)) S.recipes.push(g.gives.recipe);
+  if (g.gives.room) toPlace.push(g.gives.room);
+  ticker(`<b>목표 달성!</b> ${g.n}.`); nextPlace(); buildLegend();
+}
+
+// ═════════ 하루 끝: 다중 지표 + 대가 있는 카드 두 장 ═════════
+const roadsUsed = () => road.reduce((a, b) => a + b, 0);
+function metrics() { return { done: D.done, avg: D.done ? D.wait / D.done : null, qual: D.qaPass + D.qaFail ? D.qaPass / (D.qaPass + D.qaFail) : null, cost: roadsUsed() + ROOM_UPKEEP * sts.filter(s => !s.fixed).length, lost: D.lost }; }
+const SPECIAL = [
+  { n: '검색실', st: 'search' }, { n: '작성실', st: 'write' }, { n: '편집실', st: 'edit' }, { n: '검수대', st: 'qa' },
+  { n: '그림실', st: 'draw', need: 'draw' }, { n: '계산실', st: 'calc', need: 'calc' },
+  { n: '꼬물이 둘', f: () => { addCrew(); addCrew(); } }, { n: '검수 교육', d: '검수에서 틀리는 일 40% 감소', f: () => { S.qaFail *= 0.6; } },
+  { n: '작은 운동화', d: '모두 30% 빨리 걷기', f: () => { S.walk *= 1.3; } }, { n: '큰 접수함', d: '주문서 4장 더 쌓기', f: () => { S.inboxCap += 4; } },
 ];
 let pick = [];
 function endDay() {
   S.inDay = false; closePop();
-  const avg = dayStat.done ? dayStat.wait / dayStat.done : 0;
-  const worst = Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0], stuck = Object.entries(dayStat.stuck).sort((a, b) => b[1] - a[1])[0];
-  let diag = worst && worst[1] > 5 ? `가장 막힌 곳: <b>${KINDS[worst[0]].n}</b> (모두 합쳐 ${Math.round(worst[1])}초 줄 섬)` : '크게 막힌 곳은 없었어요.';
-  if (stuck) diag += `<br>길이 없어 헤맨 일: <b>${KINDS[stuck[0]].n}</b>로 가는 길 ${stuck[1]}번`;
-  const nextDay = S.day + 1, newType = Object.keys(REQ).find(k => REQ[k].day === nextDay);
-  const pool = CARDS.filter(c => !c.need || c.need <= nextDay);
-  pick = [];
-  if (worst && worst[1] > 5) { const c = pool.find(c => c.st === worst[0]); if (c) pick.push(c); }
-  while (pick.length < 2) { const c = pool[Math.floor(Math.random() * pool.length)]; if (!pick.includes(c)) pick.push(c); }
+  const m = metrics(), y = S.yday, b = S.best;
+  const worst = Object.entries(D.qwait).sort((a, b) => b[1] - a[1])[0], stuck = Object.entries(D.stuck).filter(e => e[1] >= 1).sort((a, b) => b[1] - a[1])[0];
+  let diag = worst && worst[1] > 5 ? `가장 막힌 곳: <b>${KINDS[worst[0]].n}</b> (모두 합쳐 ${Math.round(worst[1])}초 줄 섬)` : '줄이 길게 선 곳은 없었어요.';
+  if (stuck) diag += `<br>길이 없어 못 간 곳: <b>${KINDS[stuck[0]].n}</b>`;
+  const idleN = crew.filter(c => c.why === '일 없음').length; if (idleN >= 2) diag += `<br>지금 일이 없어 노는 꼬물이 ${idleN}마리`;
+  const cmp = (v, yv, better, f) => v == null ? '-' : f(v) + (yv == null ? '' : ` <span class="${(better(v, yv)) ? 'up' : v === yv ? '' : 'down'}">${better(v, yv) ? '▲' : v === yv ? '' : '▼'}</span>`);
+  const hi = (a, b) => a > b, lo = (a, b) => a < b;
+  // 카드: 강한 쪽 = 특수 + 길 조금, 무난한 쪽 = 길 많이 (Mini Motorways 금요일 선택)
+  const pool = SPECIAL.filter(c => !c.need || S.recipes.some(r => RECIPES[r].parts[KINDS[c.need].part]));
+  let sp = worst && worst[1] > 5 && pool.find(c => c.st === worst[0]); if (!sp || Math.random() < 0.35) sp = pool[Math.floor(Math.random() * pool.length)];
+  const alt = Math.random() < 0.5 ? { n: '길 12칸', roads: 12 } : { n: '꼬물이 하나 + 길 5칸', roads: 5, f: () => addCrew() };
+  pick = [{ ...sp, n: `${sp.n}${sp.st ? ' 하나' : ''} + 길 3칸`, roads: 3 }, alt];
   $('rep').innerHTML = `<h2>${S.day}일째 보고</h2>
-    <div class="row"><span>처리한 요청</span><span>${dayStat.done}개</span></div>
-    <div class="row"><span>평균 걸린 시간</span><span>${avg.toFixed(1)}초</span></div>
-    <div class="row"><span>검수에서 되돌아감</span><span>${dayStat.fails}번</span></div>
-    <div class="row"><span>접수함이 넘쳐 놓친 요청</span><span>${dayStat.overflow}개</span></div>
+    <table><tr><th>지표</th><th>오늘</th><th>어제</th><th>최고</th></tr>
+    <tr><td>처리한 주문</td><td>${cmp(m.done, y && y.done, hi, v => v + '개')}</td><td>${y ? y.done : '-'}</td><td>${b ? b.done : '-'}</td></tr>
+    <tr><td>평균 걸린 시간 (속도)</td><td>${cmp(m.avg, y && y.avg, lo, v => v.toFixed(1) + '초')}</td><td>${y && y.avg != null ? y.avg.toFixed(1) : '-'}</td><td>${b && b.avg != null ? b.avg.toFixed(1) : '-'}</td></tr>
+    <tr><td>검수 통과율 (품질)</td><td>${cmp(m.qual, y && y.qual, hi, v => Math.round(v * 100) + '%')}</td><td>${y && y.qual != null ? Math.round(y.qual * 100) + '%' : '-'}</td><td>${b && b.qual != null ? Math.round(b.qual * 100) + '%' : '-'}</td></tr>
+    <tr><td>유지비 (길 + 방×${ROOM_UPKEEP})</td><td>${cmp(m.cost, y && y.cost, lo, v => v)}</td><td>${y ? y.cost : '-'}</td><td>${b ? b.cost : '-'}</td></tr>
+    <tr><td>놓친 주문</td><td>${m.lost}</td><td>${y ? y.lost : '-'}</td><td></td></tr></table>
     <p class="diag">${diag}</p>
-    ${newType ? `<p>내일부터 인간이 <b>${REQ[newType].n}</b>도 부탁합니다: ${REQ[newType].route.map(k => KINDS[k].n).join(' → ')} → 발송구.${NEWROOM[nextDay] ? ` <b>${KINDS[NEWROOM[nextDay]].n}</b>은 하나 그냥 드립니다.` : ''}</p>` : ''}
-    <p>하나를 고르세요 (1, 2)</p>
-    <div class="cards">${pick.map((c, i) => `<button type="button" class="card" data-i="${i}"><b>${i + 1}. ${c.n}</b><i>${c.d}</i></button>`).join('')}</div>`;
-  $('repOv').hidden = false; $('rep').querySelectorAll('.card').forEach(b => b.addEventListener('click', () => choose(pick[+b.dataset.i])));
+    <p>하나를 고르세요 (1, 2). 강한 카드일수록 길이 적게 옵니다.</p>
+    <div class="cards">${pick.map((c, i) => `<button type="button" class="card" data-i="${i}"><b>${i + 1}. ${c.n}</b><i>${c.d || (c.st ? '방 하나를 더 놓을 수 있다' : c.roads >= 12 ? '길을 넉넉히' : '')}</i></button>`).join('')}</div>`;
+  $('repOv').hidden = false; $('rep').querySelectorAll('.card').forEach(bt => bt.addEventListener('click', () => choose(pick[+bt.dataset.i])));
+  S.yday = m; S.best = b ? { done: Math.max(b.done, m.done), avg: m.avg == null ? b.avg : b.avg == null ? m.avg : Math.min(b.avg, m.avg), qual: Math.max(b.qual || 0, m.qual || 0), cost: Math.min(b.cost, m.cost) } : { ...m };
 }
-let toPlace = [];
 function choose(c) {
-  $('repOv').hidden = true; S.day++; S.inDay = true; dayStat = newDayStat();
-  if (NEWROOM[S.day]) toPlace.push(NEWROOM[S.day]);
-  if (c.st) toPlace.push(c.st); else { c.f(); ticker(`${c.n}.`); }
-  nextPlace(); buildLegend();
+  $('repOv').hidden = true; S.day++; S.inDay = true; D = newDay();
+  S.roads += c.roads || 0; if (c.f) c.f(); if (c.st) toPlace.push(c.st);
+  ticker(`${c.n}.`); nextPlace();
 }
 function nextPlace() { if (held || !toPlace.length) return; const k = toPlace.shift(); held = addSt(k, -5, -5); held.held = true; held.from = null; setTool('sel'); ticker(`새 <b>${KINDS[k].n}</b>: 길 옆 빈 칸을 누르세요.`); }
 
-// ───────── 편집: 고르기 / 길 깔기 / 길 지우기 / 방 들기 ─────────
-let tool = 'sel', held = null, hover = [0, 0], dragging = false, popSt = null;
-function setTool(t) { tool = t; ['sel', 'road', 'erase'].forEach(k => $('t' + { sel: 'Sel', road: 'Road', erase: 'Erase' }[k]).classList.toggle('on', k === t)); if (t !== 'sel') closePop(); }
+// ═════════ 편집 ═════════
+let tool = 'sel', held = null, hover = [0, 0], dragging = false;
+function setTool(t) { tool = t; $('tSel').classList.toggle('on', t === 'sel'); $('tRoad').classList.toggle('on', t === 'road'); $('tErase').classList.toggle('on', t === 'erase'); if (t !== 'sel') closePop(); }
 function paint(x, y) {
   if (!inb(x, y) || at(x, y)) return; const i = y * GW + x;
   if (tool === 'road' && !road[i] && S.roads > 0) { road[i] = 1; S.roads--; replan(); }
   else if (tool === 'erase' && road[i]) { road[i] = 0; S.roads++; replan(); }
 }
 const canPlace = (x, y) => inb(x, y) && !road[y * GW + x] && !at(x, y);
-function drop(x, y) { if (!canPlace(x, y)) return false; held.x = x; held.y = y; held.held = false; const s = held; held = null; replan(); if (!hasRoadNext(s)) ticker(`<b>${KINDS[s.kind].n}</b> 옆에 길이 없어요. 길을 이어 주세요.`); nextPlace(); return true; }
-const hasRoadNext = s => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => inb(s.x + dx, s.y + dy) && road[(s.y + dy) * GW + s.x + dx]);
+const roadNext = s => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => inb(s.x + dx, s.y + dy) && road[(s.y + dy) * GW + s.x + dx]);
+function drop(x, y) { if (!canPlace(x, y)) return false; held.x = x; held.y = y; held.held = false; const s = held; held = null; replan(); if (!roadNext(s)) ticker(`<b>${KINDS[s.kind].n}</b> 옆에 길이 없어요. 길을 이어 주세요.`); nextPlace(); return true; }
 function lift(s) { release(s); held = s; held.from = [s.x, s.y]; s.held = true; closePop(); replan(); }
 function cancelHold() { if (held && held.from) { held.x = held.from[0]; held.y = held.from[1]; held.held = false; held = null; replan(); nextPlace(); } }
 function openPop(s) {
-  popSt = s; const p = $('pop'), types = typesNow();
-  const filt = s.kind === 'in' || s.kind === 'out' || s.kind === 'sort' ? '' : `<div>받을 요청 <i>(끄면 이 방은 그 요청을 안 받음)</i></div><div class="row">${types.filter(t => REQ[t].route.includes(s.kind)).map(t => `<button type="button" data-t="${t}" class="${accepts(s, t) ? 'on' : ''}">${REQ[t].n}</button>`).join('')}</div>`;
-  p.innerHTML = `<b>${KINDS[s.kind].n}</b>${filt}<div class="row">${s.fixed ? '<i>고정된 칸</i>' : '<button type="button" data-a="move">옮기기</button>'}<button type="button" data-a="close">닫기</button></div>`;
-  p.style.left = Math.min(70, (s.x * T + T) / W * 100) + '%'; p.style.top = Math.min(60, (s.y * T) / H * 100) + '%'; p.hidden = false;
-  p.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { const t = b.dataset.t; if (!s.accept) s.accept = new Set(typesNow()); if (s.accept.has(t)) s.accept.delete(t); else s.accept.add(t); openPop(s); });
+  const p = $('pop');
+  let body = '';
+  if (s.kind === 'edit') body = `<div>받을 주문 <i>(끄면 이 편집실은 그 주문을 안 받음)</i></div><div class="row">${S.recipes.map(r => `<button type="button" data-r="${r}" class="${!s.accept || s.accept.has(r) ? 'on' : ''}">${RECIPES[r].n}</button>`).join('')}</div><div><i>지금 맡은 주문 ${s.orders.length}/${EDIT_SLOTS}</i></div>`;
+  else if (KINDS[s.kind].part) body = `<div><i>${PARTS[KINDS[s.kind].part].n}을(를) 만든다 · 기본 ${KINDS[s.kind].work}초</i></div>`;
+  p.innerHTML = `<b>${KINDS[s.kind].n}</b>${body}<div class="row">${s.fixed ? '<i>고정된 칸</i>' : '<button type="button" data-a="move">옮기기</button>'}<button type="button" data-a="close">닫기</button></div>`;
+  p.style.left = Math.min(66, (s.x * T + T) / W * 100) + '%'; p.style.top = Math.min(55, s.y * T / H * 100) + '%'; p.hidden = false;
+  p.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const r = b.dataset.r; if (!s.accept) s.accept = new Set(S.recipes); if (s.accept.has(r)) s.accept.delete(r); else s.accept.add(r); openPop(s); });
   p.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { if (b.dataset.a === 'move') lift(s); else closePop(); });
 }
-function closePop() { $('pop').hidden = true; popSt = null; }
+function closePop() { $('pop').hidden = true; }
 
-// ───────── 한 틱 ─────────
+// ═════════ 한 틱 ═════════
 function step(dt) {
   if (!S.inDay || S.paused) return;
   S.t += dt;
@@ -311,7 +376,7 @@ function step(dt) {
   if (S.t >= S.day * DAY) endDay();
 }
 
-// ───────── 그림 ─────────
+// ═════════ 그림 ═════════
 const sprCache = {};
 function critter(tint, frame) {
   const key = tint + frame; if (sprCache[key]) return sprCache[key];
@@ -326,83 +391,89 @@ function critter(tint, frame) {
   x.fillRect(4, 14, 2, frame === 0 ? 1 : 2); x.fillRect(10, 14, 2, frame === 1 ? 1 : 2);
   return (sprCache[key] = c);
 }
-const cv = $id('cv'), ctx = cv.getContext('2d');
-function $id(id) { return document.getElementById(id); }
-function drawTile(x, y) { // 빈 칸: 타일 한 장씩 테두리가 보이게
-  const px = x * T, py = y * T; ctx.fillStyle = (x + y) % 2 ? '#24203a' : '#27233e'; ctx.fillRect(px, py, T, T);
-  ctx.fillStyle = '#1a1729'; ctx.fillRect(px, py + T - 1, T, 1); ctx.fillRect(px + T - 1, py, 1, T);
-  ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(px, py, T - 1, 1); ctx.fillRect(px, py, 1, T - 1);
-}
-function drawRoad(x, y) { // 길: 이웃 길·방으로 이음새가 붙는다
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+function rect(c, x, y, w, h) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+function drawTile(x, y) { const px = x * T, py = y * T; rect((x + y) % 2 ? '#24203a' : '#27233e', px, py, T, T); rect('#1a1729', px, py + T - 1, T, 1); rect('#1a1729', px + T - 1, py, 1, T); rect('rgba(255,255,255,.05)', px, py, T - 1, 1); rect('rgba(255,255,255,.05)', px, py, 1, T - 1); }
+function drawRoad(x, y) {
   const px = x * T, py = y * T, link = (dx, dy) => inb(x + dx, y + dy) && (road[(y + dy) * GW + x + dx] || at(x + dx, y + dy));
-  ctx.fillStyle = '#3a3552'; ctx.fillRect(px + 6, py + 6, 12, 12);
-  if (link(1, 0)) ctx.fillRect(px + 18, py + 6, 6, 12); if (link(-1, 0)) ctx.fillRect(px, py + 6, 6, 12);
-  if (link(0, 1)) ctx.fillRect(px + 6, py + 18, 12, 6); if (link(0, -1)) ctx.fillRect(px + 6, py, 12, 6);
-  ctx.fillStyle = 'rgba(127,224,208,.22)'; ctx.fillRect(px + 11, py + 11, 2, 2);
+  rect('#3a3552', px + 6, py + 6, 12, 12);
+  if (link(1, 0)) rect('#3a3552', px + 18, py + 6, 6, 12); if (link(-1, 0)) rect('#3a3552', px, py + 6, 6, 12);
+  if (link(0, 1)) rect('#3a3552', px + 6, py + 18, 12, 6); if (link(0, -1)) rect('#3a3552', px + 6, py, 12, 6);
+  rect('rgba(127,224,208,.22)', px + 11, py + 11, 2, 2);
 }
+function pip(col, x, y) { rect('#1b1420', x - 1, y - 1, 4, 4); rect(col, x, y, 2, 2); }
 function drawSt(s, t, ghost) {
   const k = KINDS[s.kind], px = s.x * T, py = s.y * T; ctx.globalAlpha = ghost ? .55 : 1;
-  ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(px + 2, py + 3, 21, 21);
-  ctx.fillStyle = k.col; ctx.fillRect(px + 1, py + 1, 22, 21);
-  ctx.fillStyle = k.top; ctx.fillRect(px + 1, py + 1, 22, 5);
-  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(px + 1, py + 6, 22, 1);
-  // 작은 그림 기호
-  const ix = px + 7, iy = py + 9; ctx.fillStyle = '#f4f1ff';
-  if (s.kind === 'in') { ctx.fillRect(ix, iy + 2, 10, 7); ctx.fillStyle = k.col; ctx.fillRect(ix + 2, iy + 4, 6, 1); }
-  else if (s.kind === 'out') { ctx.fillRect(ix + 1, iy, 8, 6); ctx.fillRect(ix + 4, iy + 6, 2, 2); ctx.fillRect(ix + 2, iy + 8, 6, 1); }
-  else if (s.kind === 'sort') { ['#8ac8ff', '#ff9ad0', '#f0e070', '#8fe0a0'].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(ix + (i % 2) * 5, iy + Math.floor(i / 2) * 5, 4, 4); }); }
-  else if (s.kind === 'search') { ctx.fillRect(ix, iy, 6, 6); ctx.fillStyle = k.col; ctx.fillRect(ix + 1, iy + 1, 4, 4); ctx.fillStyle = '#f4f1ff'; ctx.fillRect(ix + 6, iy + 6, 3, 3); }
-  else if (s.kind === 'write') { ctx.fillRect(ix, iy, 9, 10); ctx.fillStyle = k.col; for (let r = 0; r < 3; r++) ctx.fillRect(ix + 2, iy + 2 + r * 3, 5, 1); }
-  else if (s.kind === 'draw') { ctx.fillRect(ix, iy, 10, 9); ctx.fillStyle = '#ff9ad0'; ctx.fillRect(ix + 2, iy + 2, 3, 3); ctx.fillStyle = '#8ac8ff'; ctx.fillRect(ix + 5, iy + 4, 3, 3); }
-  else if (s.kind === 'calc') { ctx.fillStyle = '#1b1828'; ctx.fillRect(ix, iy, 10, 10); ctx.fillStyle = k.top; for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) ctx.fillRect(ix + 1 + q * 3, iy + 1 + r * 3, 2, 2); }
-  else if (s.kind === 'qa') { ctx.fillRect(ix, iy, 10, 10); ctx.fillStyle = '#3aa060'; ctx.fillRect(ix + 2, iy + 5, 2, 2); ctx.fillRect(ix + 4, iy + 7, 2, 1); ctx.fillRect(ix + 6, iy + 3, 2, 4); }
-  if (s.accept && !ghost) { let i = 0; for (const tp of typesNow()) if (REQ[tp].route.includes(s.kind) && s.accept.has(tp)) { ctx.fillStyle = REQ[tp].col; ctx.fillRect(px + 3 + i * 4, py + 19, 3, 2); i++; } }
-  if (s.busy && !ghost) { ctx.fillStyle = Math.sin(t * 10) > 0 ? k.top : '#fff'; ctx.fillRect(px + 19, py + 9, 2, 2); }
+  rect('rgba(0,0,0,.4)', px + 2, py + 3, 21, 21); rect(k.col, px + 1, py + 1, 22, 21); rect(k.top, px + 1, py + 1, 22, 5); rect('rgba(0,0,0,.3)', px + 1, py + 6, 22, 1);
+  const ix = px + 7, iy = py + 9, wh = '#f4f1ff';
+  if (s.kind === 'in') { rect(wh, ix, iy + 2, 10, 7); rect(k.col, ix + 2, iy + 4, 6, 1); }
+  else if (s.kind === 'out') { rect(wh, ix + 1, iy, 8, 6); rect(wh, ix + 4, iy + 6, 2, 2); rect(wh, ix + 2, iy + 8, 6, 1); }
+  else if (s.kind === 'edit') { rect('#c8a878', ix, iy - 1, 10, 11); rect(wh, ix + 1, iy + 1, 8, 8); rect('#5a5a5a', ix + 3, iy - 2, 4, 2); }
+  else if (k.part) { const col = PARTS[k.part].col; rect(wh, ix, iy, 10, 9); rect(col, ix + 2, iy + 2, 6, 5); if (s.kind === 'search') { rect('#34406a', ix + 3, iy + 3, 3, 3); } if (s.kind === 'write') { rect('#5e5032', ix + 2, iy + 3, 6, 1); rect('#5e5032', ix + 2, iy + 5, 4, 1); } if (s.kind === 'calc') { rect('#545228', ix + 3, iy + 3, 1, 3); rect('#545228', ix + 2, iy + 4, 3, 1); } }
+  else if (s.kind === 'qa') { rect(wh, ix, iy, 10, 10); rect('#3aa060', ix + 2, iy + 5, 2, 2); rect('#3aa060', ix + 4, iy + 7, 2, 1); rect('#3aa060', ix + 6, iy + 3, 2, 4); }
+  if (s.busy && !ghost) rect(Math.sin(t * 10) > 0 ? k.top : '#fff', px + 19, py + 9, 2, 2);
+  // 편집실: 맡은 주문과 모인 부품을 칸 위에 점으로
+  if (s.kind === 'edit' && !ghost) s.orders.forEach((o, oi) => { let i = 0; for (const [p, n] of Object.entries(o.need)) for (let k2 = 0; k2 < n; k2++) { const got = k2 < (o.have[p] || 0); ctx.globalAlpha = got ? 1 : .35; pip(PARTS[p].col, px + 3 + i * 4, py - 4 - oi * 5); ctx.globalAlpha = 1; i++; } });
   ctx.globalAlpha = 1;
 }
-function drawTicket(tk, x, y) { ctx.fillStyle = '#2b1d2c'; ctx.fillRect(x - 3, y - 4, 7, 6); ctx.fillStyle = tk.type ? REQ[tk.type].col : '#9a93ad'; ctx.fillRect(x - 2, y - 3, 5, 4); if (!tk.type) { ctx.fillStyle = '#2b1d2c'; ctx.fillRect(x, y - 2, 1, 1); } }
+function drawCarry(c, x, y) {
+  const k = c.carry; if (!k) return;
+  if (k.slip) { rect('#2b1d2c', x - 3, y - 5, 7, 7); rect('#e9e2cc', x - 2, y - 4, 5, 5); let i = 0; for (const [p, n] of Object.entries(k.slip.need)) for (let q = 0; q < n && i < 4; q++, i++) rect(PARTS[p].col, x - 2 + (i % 2) * 3, y - 4 + Math.floor(i / 2) * 3, 2, 2); }
+  else if (k.part) { rect('#2b1d2c', x - 3, y - 4, 6, 6); rect(PARTS[k.part].col, x - 2, y - 3, 4, 4); }
+  else if (k.result) { rect('#2b1d2c', x - 4, y - 5, 8, 7); rect('#ffe27a', x - 3, y - 4, 6, 5); rect('#c8a040', x - 3, y - 2, 6, 1); }
+}
 function draw(t) {
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { drawTile(x, y); if (road[y * GW + x]) drawRoad(x, y); }
   if (tool !== 'sel' || held) { const [hx, hy] = hover; if (inb(hx, hy)) { ctx.strokeStyle = held ? (canPlace(hx, hy) ? '#7fe0d0' : '#ff5a5a') : tool === 'road' ? '#7fe0d0' : '#ff8a7a'; ctx.strokeRect(hx * T + .5, hy * T + .5, T - 1, T - 1); } }
   for (const s of sts) if (!s.held) drawSt(s, t);
-  const inn = sts.find(s => s.kind === 'in'); inbox.forEach((tk, i) => drawTicket(tk, inn.x * T + 4 + (i % 4) * 5, inn.y * T + 30 + Math.floor(i / 4) * 5 + (inn.y >= GH - 1 ? -40 : 0)));
-  for (const s of sts) s.queue.forEach((c, i) => { const [qx, qy] = tileOf(c); if (i > 0) { c.x += ((qx * T + 12 - i * 3) - c.x) * .15; } });
+  const inn = sts.find(s => s.kind === 'in'); inbox.forEach((o, i) => { const x = inn.x * T + 4 + (i % 4) * 5, y = inn.y * T + 28 + Math.floor(i / 4) * 5; rect('#2b1d2c', x - 1, y - 1, 5, 5); rect('#e9e2cc', x, y, 3, 3); });
+  for (const s of sts) s.queue.forEach((c, i) => { if (i > 0) c.x += ((Math.floor(c.x / T) * T + 12 - i * 3) - c.x) * .15; });
   for (const c of [...crew].sort((a, b) => a.y - b.y)) {
     const moving = c.path.length > 0, fr = moving ? Math.floor(t * 8 + c.ph) % 2 : c.st === 'work' ? Math.floor(t * 5) % 2 : 0;
     const img = critter(c.tint, fr), x = Math.round(c.x - 8), y = Math.round(c.y - 16);
-    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(x + 3, y + 15, 10, 2);
+    rect('rgba(0,0,0,.3)', x + 3, y + 15, 10, 2);
     if (c.face < 0) { ctx.save(); ctx.translate(x + 16, y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); } else ctx.drawImage(img, x, y);
-    if (c.tk) drawTicket(c.tk, Math.round(c.x), y - 1);
-    if (c.bub) { ctx.fillStyle = '#fff'; ctx.fillRect(x + 11, y - 9, 7, 8); ctx.fillStyle = '#ff5a5a'; ctx.fillRect(x + 14, y - 8, 1, 4); ctx.fillRect(x + 14, y - 3, 1, 1); }
+    drawCarry(c, Math.round(c.x), y);
+    if (c.st === 'stuck') { rect('#fff', x + 11, y - 9, 7, 8); rect('#ff5a5a', x + 14, y - 8, 1, 4); rect('#ff5a5a', x + 14, y - 3, 1, 1); }
+    else if (c.why === '일 없음' && !moving) { rect('#9a93ad', x + 12, y - 5 - Math.floor(t * 2 % 2), 3, 1); rect('#9a93ad', x + 14, y - 4 - Math.floor(t * 2 % 2), 1, 1); rect('#9a93ad', x + 12, y - 3 - Math.floor(t * 2 % 2), 3, 1); }
   }
-  for (const f of fx) { const q = f.t / f.life; if (f.k === 'spark') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x), Math.round(f.y - q * 6), 1, 1); } else if (f.k === 'x') { ctx.fillStyle = '#ff5a5a'; const x = Math.round(f.x), y = Math.round(f.y - q * 6); for (let k = -2; k <= 2; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + k, y - k, 1, 1); } } else if (f.k === 'pop') { ctx.fillStyle = f.col; ctx.fillRect(Math.round(f.x - 1), Math.round(f.y - q * 10), 3, 3); } }
-  if (held) { const [hx, hy] = hover; if (inb(hx, hy)) drawSt({ ...held, x: hx, y: hy, accept: null }, t, true); }
+  for (const f of fx) { const q = f.t / f.life; if (f.k === 'spark') rect(f.col, Math.round(f.x), Math.round(f.y - q * 6), 1, 1); else if (f.k === 'x') { const x = Math.round(f.x), y = Math.round(f.y - q * 6); for (let k = -2; k <= 2; k++) { rect('#ff5a5a', x + k, y + k, 1, 1); rect('#ff5a5a', x + k, y - k, 1, 1); } } else if (f.k === 'pop') rect(f.col, Math.round(f.x - 1), Math.round(f.y - q * 10), 3, 3); }
+  // 넘침 경고(Mini Motorways 핀 타이머)
+  if (inbox.length >= S.inboxCap - 2) { ctx.strokeStyle = Math.sin(t * 12) > 0 ? '#ff5a5a' : '#ffb0a0'; ctx.lineWidth = 2; ctx.strokeRect(inn.x * T + 1, inn.y * T + 1, T - 2, T - 2); ctx.lineWidth = 1; }
+  if (held) { const [hx, hy] = hover; if (inb(hx, hy)) drawSt({ ...held, x: hx, y: hy, orders: [] }, t, true); }
 }
 
-// ───────── HTML ─────────
+// ═════════ HTML ═════════
 function $(id) { return document.getElementById(id); }
 function ticker(s) { $('ticker').innerHTML = s; }
-function buildLegend() { $('legend').innerHTML = `<span><i style="background:#9a93ad"></i>분류 전: 접수함 → 분류대</span>` + typesNow().map(k => `<span><i style="background:${REQ[k].col}"></i>${REQ[k].n}: ${REQ[k].route.map(r => KINDS[r].n).join(' → ')} → 발송구</span>`).join(''); }
+const recipeTxt = r => Object.entries(RECIPES[r].parts).map(([p, n]) => `<i style="background:${PARTS[p].col}"></i>${PARTS[p].n}${n > 1 ? '×' + n : ''}`).join(' + ');
+function buildLegend() { $('legend').innerHTML = S.recipes.map(r => `<span><b style="font-weight:400;color:var(--fg)">${RECIPES[r].n}</b> = ${recipeTxt(r)}</span>`).join(''); }
+function renderGoal() {
+  const g = GOALS[S.goal]; if (!g) { $('goal').innerHTML = '<b>모든 목표 달성</b> 다음 컴퓨터는 다음 판에서.'; return; }
+  const parts = Object.entries(g.need).map(([r, n]) => `${RECIPES[r].n} ${Math.min(n, S.delivered[r] || 0)}/${n}`).join(' · ');
+  const p = Object.entries(g.need).reduce((a, [r, n]) => a + Math.min(n, S.delivered[r] || 0), 0) / Object.values(g.need).reduce((a, b) => a + b, 0);
+  $('goal').innerHTML = `<span>목표</span><b>${parts}</b><span class="bar"><i style="width:${p * 100}%"></i></span><span>→ ${g.n}</span>`;
+}
 function renderLabels() {
   let h = '';
-  for (const s of sts) {
-    if (s.held) continue; const cx = (s.x * T + 12) / W * 100;
-    h += `<div class="lab" style="left:${cx}%;top:${(s.y * T + T) / H * 100}%">${KINDS[s.kind].n}</div>`;
-    const q = s.queue.length; if (q >= 2) h += `<div class="badge q" style="left:${cx}%;top:${(s.y * T) / H * 100}%">줄 ${q}</div>`;
-  }
-  const st = crew.filter(c => c.st === 'stuck'); if (st.length) { const c = st[0]; h += `<div class="badge" style="left:${c.x / W * 100}%;top:${(c.y - 22) / H * 100}%">${KINDS[c.need].n} 가는 길 없음</div>`; }
+  for (const s of sts) { if (s.held) continue; const cx = (s.x * T + 12) / W * 100; h += `<div class="lab" style="left:${cx}%;top:${(s.y * T + T) / H * 100}%">${KINDS[s.kind].n}</div>`; const q = s.queue.length; if (q >= 2) h += `<div class="badge" style="left:${cx}%;top:${s.y * T / H * 100}%">줄 ${q}</div>`; }
+  const inn = sts.find(s => s.kind === 'in'); if (inbox.length >= S.inboxCap - 2) h += `<div class="badge hot" style="left:${(inn.x * T + 12) / W * 100 + 3}%;top:${inn.y * T / H * 100}%">곧 넘침 ${inbox.length}/${S.inboxCap}</div>`;
+  const st = crew.find(c => c.st === 'stuck'); if (st) h += `<div class="badge hot" style="left:${st.x / W * 100}%;top:${(st.y - 24) / H * 100}%">${st.why}</div>`;
   $('labels').innerHTML = h;
 }
+const DOING = c => c.st === 'stuck' ? c.why : c.st === 'queue' ? `${KINDS[c.s.kind].n} 줄` : c.st === 'work' ? `${KINDS[c.s.kind].n}에서 일함` : c.st === 'walk' || c.st === 'enter' ? (c.carry ? (c.carry.part ? PARTS[c.carry.part].n + ' 나름' : c.carry.slip ? '주문서 나름' : '결과물 나름') : `${KINDS[c.s.kind].n}로`) : c.why || '쉼';
+function renderCrew() { $('crew').innerHTML = crew.map(c => { const top = Object.entries(c.skill).sort((a, b) => b[1] - a[1])[0], sk = top && lvl(c, top[0]) ? ` ${KINDS[top[0]].n.slice(0, 2)}★${lvl(c, top[0])}` : ''; return `<div>${c.name}${sk}<span class="${c.st === 'stuck' ? 'stuck' : c.why === '일 없음' && c.st === 'idle' ? 'idle' : ''}">${DOING(c)}</span></div>`; }).join(''); }
 function renderHud() {
-  $('day').textContent = `${S.day}일째`; $('done').textContent = S.done;
-  $('mood').textContent = `인간 기분 ${Math.round(S.mood)} · 접수함 ${inbox.length}/${S.inboxCap}`;
+  const m = metrics();
+  $('day').textContent = `${S.day}일째`; $('done').textContent = m.done; $('avg').textContent = `평균 ${m.avg == null ? '-' : m.avg.toFixed(1) + '초'}`; $('qual').textContent = `검수 통과 ${m.qual == null ? '-' : Math.round(m.qual * 100) + '%'}`; $('cost').textContent = `유지비 ${m.cost}`;
   $('dayFill').style.width = Math.min(100, (S.t - (S.day - 1) * DAY) / DAY * 100) + '%';
-  $('inv').innerHTML = `남은 길 <b>${S.roads}</b>칸 · 꼬물이 <b>${crew.length}</b>${toPlace.length ? ` · 놓을 방 <b>${toPlace.length}</b>` : ''}`;
+  const idle = crew.filter(c => c.st === 'idle' && c.why === '일 없음').length;
+  $('inv').innerHTML = `남은 길 <b>${S.roads}</b>칸 · 꼬물이 <b>${crew.length}</b>${idle ? ` (놀음 ${idle})` : ''} · 접수함 <b>${inbox.length}/${S.inboxCap}</b>${toPlace.length ? ` · 놓을 방 <b>${toPlace.length}</b>` : ''}`;
   const md = $('mode'); md.hidden = !held && !S.paused && tool === 'sel'; md.textContent = held ? `${KINDS[held.kind].n} 놓을 칸을 누르세요${held.from ? ' (Esc 취소)' : ''}` : S.paused ? '멈춤' : tool === 'road' ? '길 깔기: 누르거나 끌기' : '길 지우기: 누르거나 끌기';
   $('tPause').innerHTML = `<kbd>Space</kbd>${S.paused ? '계속' : '멈춤'}`;
 }
 
-// ───────── 입력 ─────────
+// ═════════ 입력 ═════════
 function toTile(e) { const r = cv.getBoundingClientRect(); return [Math.floor((e.clientX - r.left) / r.width * GW), Math.floor((e.clientY - r.top) / r.height * GH)]; }
 cv.addEventListener('pointermove', e => { hover = toTile(e); if (dragging) paint(...hover); });
 cv.addEventListener('pointerdown', e => {
@@ -424,11 +495,12 @@ addEventListener('keydown', e => {
 });
 $('tSel').onclick = () => setTool('sel'); $('tRoad').onclick = () => setTool('road'); $('tErase').onclick = () => setTool('erase'); $('tPause').onclick = () => { S.paused = !S.paused; };
 
-// 확인용 봇: 카드 첫 장, 새 방은 길 옆 빈 칸에
-window.__sim = sec => { const dt = 0.1, out = []; for (let k = 0; k < sec / dt; k++) { step(dt); if (!$('repOv').hidden) { const w = Object.entries(dayStat.qwait).sort((a, b) => b[1] - a[1])[0]; out.push(`day${S.day} done${dayStat.done} avg${(dayStat.wait / Math.max(1, dayStat.done)).toFixed(1)} fails${dayStat.fails} over${dayStat.overflow} mood${Math.round(S.mood)} crew${crew.length} worst:${w ? w[0] + Math.round(w[1]) : '-'} stuck:${JSON.stringify(dayStat.stuck)}`); choose(pick[0]); } while (held) { let ok = false; for (let y = 0; y < GH && !ok; y++) for (let x = 1; x < GW - 1 && !ok; x++) if (canPlace(x, y) && [[0, 1], [0, -1]].some(([dx, dy]) => inb(x + dx, y + dy) && road[(y + dy) * GW + x + dx])) ok = drop(x, y); if (!ok) break; } } return out.join('\n'); };
+// ═════════ 확인용 봇 ═════════
+// 카드는 늘 1번, 새 방은 가운데 길 바로 위·아래 빈 칸에. 길·규칙은 안 고침. 교착이 있으면 stuckAll로 드러난다.
+window.__sim = sec => { const dt = 0.1, out = []; let stuckMax = 0; for (let k = 0; k < sec / dt; k++) { step(dt); stuckMax = Math.max(stuckMax, crew.filter(c => c.st === 'stuck').length); if (!$('repOv').hidden) { const m = S.yday; out.push(`day${S.day} done${m.done} avg${m.avg == null ? '-' : m.avg.toFixed(1)} qual${m.qual == null ? '-' : Math.round(m.qual * 100)} cost${m.cost} lost${m.lost} goal${S.goal} crew${crew.length} stuckMax${stuckMax} orders${orders.length}`); stuckMax = 0; choose(pick[0]); } while (held) { let ok = false; for (let d = 0; d < GW && !ok; d++) for (const x of [7 + d, 7 - d]) for (const y of [3, 5]) if (!ok && x > 0 && x < GW - 1 && canPlace(x, y)) ok = drop(x, y); if (!ok) break; } } return out.join('\n'); };
 
 buildLegend();
-let last = performance.now(), labT = 0;
-function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; step(dt); draw(now / 1000); labT -= dt; if (labT <= 0) { labT = 0.15; renderLabels(); } renderHud(); requestAnimationFrame(frame); }
+let last = performance.now(), uiT = 0;
+function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; step(dt); draw(now / 1000); uiT -= dt; if (uiT <= 0) { uiT = 0.15; renderLabels(); renderCrew(); renderGoal(); } renderHud(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 </script>

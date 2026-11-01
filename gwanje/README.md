@@ -2,7 +2,9 @@
 
 밥 먹으면서 틀어 두는 게임 기획과 첫 시제품 "을지로 관제실"(서울나이트워치 세계관). 게임 형태는 아직 열려 있다.
 
+- **설계 청사진(이것 하나로 다시 만들 수 있게)**: [BLUEPRINT.md](BLUEPRINT.md)
 - 기획과 생각: [DESIGN.md](DESIGN.md), 씨앗과 시제품 기록: [CONCEPTS.md](CONCEPTS.md), 레퍼런스 역설계: [REFERENCES.md](REFERENCES.md)
+- 현재 시제품: `agents.html`(꼬물이 에이전트 회사 v3)
 - 플레이: `index.html`을 브라우저로 열면 된다. 글꼴까지 한 파일에 들어 있다.
 
 ## 파일
