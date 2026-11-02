@@ -5,7 +5,7 @@ const Teams = {
   mode: 'free', counts: {}, autoT: 0,
   roleOf: id => DATA.roles.find(r => r.id === id),
   allows(c, job) {
-    if (!c.role) return true;
+    if (!c.role || job.type === 'coffee') return true;
     const r = Teams.roleOf(c.role);
     return r.job === job.type && (!r.part || r.part === job.part);
   },
@@ -24,7 +24,11 @@ const Teams = {
       }
     }
   },
-  skillFor(c, role) { if (role.job === 'part') return c.skill[DATA.parts[role.part].room] || 0; if (role.job === 'asm') return (c.skill.asm || 0) + (c.skill.qa || 0); return 0; },
+  // 배정 점수 = 숙련 + 기질 궁합(감사관 → 조립·검수, 몽상가 → 부품 방)
+  skillFor(c, role) {
+    const sk = role.job === 'part' ? c.skill[DATA.parts[role.part].room] || 0 : role.job === 'asm' ? (c.skill.asm || 0) + (c.skill.qa || 0) : 0;
+    return sk + (DATA.quirks[c.quirk].likes === role.job ? DATA.teams.quirkPull : 0);
+  },
   inc(id, d) {
     const total = World.crew.filter(c => !c.pinned).length, sum = Object.values(Teams.counts).reduce((a, b) => a + b, 0);
     const v = (Teams.counts[id] || 0) + d; if (v < 0 || (d > 0 && sum >= total)) return;

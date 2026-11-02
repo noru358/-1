@@ -29,8 +29,20 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .goal .mini { display: inline-block; width: 50px; height: 4px; background: #2a2538; margin-left: 6px; vertical-align: 2px; }
 .goal .mini i { display: block; height: 100%; background: var(--warm); }
 .goal .gr { margin-left: auto; color: var(--warm); }
-.daybar { height: 4px; background: var(--panel); }
-.daybar i { display: block; height: 100%; background: var(--acc); width: 0; }
+.daybar { height: 6px; background: var(--panel); position: relative; }
+.daybar i { display: block; height: 100%; background: var(--acc); width: 0; position: relative; z-index: 1; }
+.daybar .rushz { position: absolute; left: 66.67%; width: 16.67%; top: 0; bottom: 0; background: repeating-linear-gradient(90deg, #5a2a2a 0 3px, #3a2030 3px 6px); }
+.daybar.rush i { background: var(--warm); }
+.stats b.gold { color: #ffe27a; } .stats b.bad { color: var(--hot); }
+.poke { font-size: 12px; color: var(--dim); }
+.poke.ready b { color: #ffb0d8; font-weight: 400; }
+.chip.ins { box-shadow: 0 0 0 1px #ffe27a; position: relative; }
+.chip.ins::after { content: "★"; position: absolute; right: -5px; top: -7px; font-size: 8px; color: #ffe27a; text-shadow: 1px 1px 0 #000; }
+.chip.hal { box-shadow: 0 0 0 1px #ff4d6d; position: relative; }
+.chip.hal::after { content: "!"; position: absolute; right: -4px; top: -7px; font-size: 9px; color: #ff4d6d; text-shadow: 1px 1px 0 #000; }
+.qt { font-style: normal; color: var(--c); border: 1px solid var(--c); padding: 0 2px; margin-right: 4px; font-size: 10px; }
+.en { font-style: normal; color: #d8a070; letter-spacing: -1px; font-size: 10px; }
+.lab em { font-style: normal; color: #ffe27a; margin-left: 2px; }
 .screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 16 / 9; max-width: 100%; }
 .screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none; }
 .labels { position: absolute; inset: 0; pointer-events: none; }
@@ -67,8 +79,11 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .rc { display: flex; justify-content: space-between; gap: 8px; }
 .rc b { font-weight: 400; }
 .rc.how { color: var(--dim); font-size: 11px; display: block; border-top: 1px dashed var(--line); padding-top: 4px; margin-top: 2px; }
-.ticker { color: var(--dim); min-height: 2.6em; }
-.ticker b { color: var(--fg); font-weight: 400; }
+.ticker { color: var(--fg); min-height: 5.5em; font-size: 12px; display: grid; gap: 1px; }
+.ticker b { font-weight: 400; color: var(--acc); }
+.ticker i { font-style: normal; color: var(--dim); }
+.ticker .old { color: var(--dim); }
+.ticker .bad { color: #ff8a9a; }
 .modes { display: flex; gap: 4px; flex-wrap: wrap; }
 .modes button, .role button { background: #26223a; border: 1px solid var(--line); padding: 1px 8px; cursor: pointer; color: var(--dim); }
 .modes button.on { border-color: var(--acc); color: var(--fg); }
@@ -87,11 +102,14 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 .report { background: var(--paper); color: var(--ink); width: min(580px, 100%); padding: 14px 18px; display: grid; gap: 6px; max-height: 100%; overflow: auto; }
 .report h2 { margin: 0; font-size: 18px; font-weight: 400; }
 .report table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.report table, .report td, .report th { color: var(--ink); }
 .report td, .report th { border-bottom: 1px dashed var(--inkdim); padding: 2px 4px; text-align: right; font-weight: 400; }
 .report td:first-child, .report th:first-child { text-align: left; }
 .report .up { color: #2a7a4a; } .report .down { color: #a83a3a; }
 .report p { margin: 0; color: var(--inkdim); }
 .report .diag { color: var(--ink); background: #fff3d0; padding: 6px 8px; }
+.report .good { color: #2a7a4a; } .report .bad { color: #a83a3a; }
+.tip i { font-style: normal; color: var(--inkdim); }
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
 .card { text-align: left; background: #d9d0b4; border: 2px solid var(--ink); padding: 8px 10px; cursor: pointer; color: var(--ink); display: grid; gap: 2px; }
 .card:hover { background: #fff6dc; }
@@ -104,10 +122,10 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
 <div class="wrap">
   <header>
     <h1>꼬물이 에이전트 회사</h1>
-    <div class="stats"><span id="day">1일째</span><span>오늘 처리 <b id="done">0</b></span><span>평균 <b id="avg">-</b></span><span>검수 통과 <b id="qual">-</b></span><span>유지비 <b id="cost">-</b></span></div>
+    <div class="stats"><span id="day">1일째</span><span>오늘 처리 <b id="done">0</b></span><span>★명작 <b id="master" class="gold">0</b></span><span>평균 <b id="avg">-</b></span><span>신뢰도 <b id="trust">-</b></span><span>유지비 <b id="cost">-</b></span></div>
   </header>
   <div class="goal" id="goal"></div>
-  <div class="daybar"><i id="dayFill"></i></div>
+  <div class="daybar" id="daybar"><i id="dayFill"></i><span class="rushz" title="마감 러시"></span></div>
   <div class="screen"><canvas id="cv" width="384" height="216"></canvas><div class="labels" id="labels"></div><div class="mode" id="mode" hidden></div><div class="tip" id="tip" hidden></div><div class="pop" id="pop" hidden></div></div>
   <div class="tools">
     <button type="button" id="tSel" class="on"><kbd>S</kbd>고르기</button>
@@ -117,10 +135,11 @@ h1 { margin: 0; font-size: 20px; font-weight: 400; }
     <button type="button" id="tSpeed"><kbd>F</kbd>빠르게 ×1</button>
     <span class="inv" id="inv"></span>
   </div>
+  <div class="poke" id="poke"></div>
   <div class="low">
     <div class="col">
       <div class="box"><h2>주문 카드 (필요한 부품)</h2><div class="recipes" id="recipes"></div></div>
-      <div class="box ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div>
+      <div class="box"><h2>방송 띠 (단골 인간들 반응)</h2><div class="ticker" id="ticker"><div><b>인간</b> 컴퓨터 앞에 앉았다.</div></div></div>
     </div>
     <div class="box"><h2>분업</h2><div id="teams"></div><div class="crew" id="crew"></div></div>
   </div>
