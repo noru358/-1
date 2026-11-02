@@ -1,6 +1,6 @@
 # 레퍼런스 조사
 
-다른 게임과 자료에서 **본 것**만 적는다. 우리 게임에 대한 결정은 적지 않는다(결정 → [DESIGN.md](DESIGN.md), 적용 상태 → [BLUEPRINT_TEST1.md](BLUEPRINT_TEST1.md) 3장, 경위 → [DSEIGN_EMBODIMENT.md](DSEIGN_EMBODIMENT.md)).
+다른 게임과 자료에서 **본 것**만 적는다. 우리 게임에 대한 결정은 적지 않는다(결정 → [DESIGN.md](DESIGN.md), 적용 상태 → [BLUEPRINT_TEST1.md](BLUEPRINT_TEST1.md) 3장, 경위 → [DESIGN_EMBODIMENT.md](DESIGN_EMBODIMENT.md)).
 
 출처는 각 게임의 리뷰, 위키, 공략, 커뮤니티 글(2026-11 확인), 직접 해 보거나 잰 것, Claude가 알고 있던 내용이다. 커뮤니티 자료라 세부 수치는 버전마다 다를 수 있다. 확인하지 못한 수치는 적지 않았다.
 

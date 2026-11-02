@@ -1,7 +1,7 @@
 # 꼬물이 에이전트 회사 — 설계 청사진
 
 **현재 게임(v4)의 명세서다.** 이 문서 하나로 게임을 처음부터 다시 만들 수 있게 쓴다. 그래서 1~3장에 상위 문서의 **요약 사본**을 둔다.
-- 요약 사본과 원본이 다르면 **원본이 맞다.** 원본: 기준과 원칙은 [DESIGN.md](DESIGN.md), 경위는 [DSEIGN_EMBODIMENT.md](DSEIGN_EMBODIMENT.md), 외부 근거는 [REFERENCES.md](REFERENCES.md).
+- 요약 사본과 원본이 다르면 **원본이 맞다.** 원본: 기준과 원칙은 [DESIGN.md](DESIGN.md), 경위는 [DESIGN_EMBODIMENT.md](DESIGN_EMBODIMENT.md), 외부 근거는 [REFERENCES.md](REFERENCES.md).
 - 4~6장(규칙, 숫자, 코드, 검증)은 이 문서가 원본이다. 규칙이나 숫자를 바꾸면 이 문서의 해당 표를 같이 고친다.
 - 현재 코드: `agents/`(shell.html + src/*.js 모듈) → 빌드하면 `agents.html`.
 - 2026-11-02 v4 기준이다.
@@ -64,7 +64,7 @@
 | v3 | 조립식 주문, 목표 해금, 다중 지표, 대가 있는 카드 | 구조는 직관적. 그러나 "모두 일 없음" 버그(허용 목록), 아래 주문·목표 글이 안 읽힘, 같은 방이 여럿이면 한 곳으로 몰림, 조립실과 위 네모 점이 뭔지 모름 |
 | **v4 (현재)** | 모듈 구조, 분업(자유·알아서·직접), 부하 분산, 거부 목록, 칩 기호 통일, 조립실 진행판, 툴팁, 속도 | 아래 4~6장 |
 
-자세한 경위는 [DSEIGN_EMBODIMENT.md](DSEIGN_EMBODIMENT.md)에 있다. 버그에서 얻은 원칙(교착 방지, 거부 목록, 파생 값 재계산)은 DESIGN 7장 기반 원칙으로 올렸다.
+자세한 경위는 [DESIGN_EMBODIMENT.md](DESIGN_EMBODIMENT.md)에 있다. 버그에서 얻은 원칙(교착 방지, 거부 목록, 파생 값 재계산)은 DESIGN 7장 기반 원칙으로 올렸다.
 
 ---
 
