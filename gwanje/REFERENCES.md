@@ -257,3 +257,31 @@
 - Rusty's Retirement: [Wikipedia](https://en.wikipedia.org/wiki/Rusty%27s_Retirement), [Destructoid](https://www.destructoid.com/cozy-corner-stay-productive-with-this-farming-sim-that-uses-a-fraction-of-your-screen/), [Gameplay.tips 봇 가이드](https://gameplay.tips/guides/rustys-retirement-bots-guide-harvest-biofuel-berry-feeder-and-others.html)
 - RimWorld: [RimWorld Wiki — Work](https://rimworldwiki.com/wiki/Work), [WorkTab 모드](https://github.com/MrClon/WorkTab)
 - Good Company: [Screen Rant](https://screenrant.com/good-company-game-review/), [CogConnected](https://cogconnected.com/?p=313009), [PC Gamer](https://www.pcgamer.com/theres-some-factorio-dna-in-this-tycoon-game-about-running-a-calculator-factory), [Vaporlens](https://vaporlens.app/app/911430/good_company)
+
+---
+
+## E. 2차 레퍼런스 20종 (사용자 제공 목록, 2026-11-02)
+사용자가 정리해 준 목록이다. 여기에는 각 게임에서 따올 수 있는 **구조**만 적고, 우리 게임에 대한 결정은 DESIGN_EMBODIMENT 11차에 적는다.
+
+| 영역 | 게임 | 고유 구조 | 따올 수 있는 패턴 |
+|---|---|---|---|
+| 방치·관찰 | Loop Hero | 자동으로 도는 고리 + 고리 옆 타일 배치, 인접 타일끼리 변이 | 길을 고리로 고정하고, 설계를 "무엇을 어디 옆에"로 좁힘 |
+| | (the) Gnorp Apologue | 일꾼·발사체·파편 더미를 모두 물리적으로 보여 줌 | 생산(타격)과 운반 병목을 눈으로 분리, 방 앞 더미 |
+| | Backpack Battles | 시간 무제한 격자 배치 + 방향 있는 감지 칸 | 출입구끼리 맞닿으면 걷기 없이 전달 |
+| | Dorfromantik | 압박 없는 타일 배치, 작은 미션으로 타일 보충 | 현장 미션 달성 시 즉시 자원 보충 |
+| 물류·분업 | Factorio | 공급·완충·요청 상자 물류 네트워크 | 완충 선반: 미리 만들어 비축 |
+| | Oxygen Not Included | 단면 디오라마, 방 규격 보너스, 오버레이 | 진단 오버레이(통행량·대기열 열지도) |
+| | Autonauts | 플레이어 행동을 보고 배우는 로봇 | 꼬물이를 찍고 두 방을 끌면 전담 셔틀 노선 |
+| | Oddsparks | 길 위만 걷는 일꾼 + 길에 꽂는 신호·분기 | 꼬물이 AI 대신 길 타일에 규칙(일방통행, 급행) |
+| | Stacklands | 카드 겹치기 조합, 직관적 진행 막대 | 같은 방 겹쳐 증축 (v5에 넣음) |
+| | Wilmot's Warehouse | 평시 정리와 납품 러시를 분리 | 하루 안의 러시 구간 예고 (v5에 넣음) |
+| 간접 통제·시너지 | Unicorn Overlord | 조건 → 행동 우선순위 작전 표 | 한 줄 작전 스위치 (v5 조립실 우선순위) |
+| | Majesty | 직접 명령 없이 현상금 깃발로 유도 | 급행 핀: 누른 주문·방에 우선순위 + 보너스 |
+| | Despot's Game | 귀여운 도트 군단 + 직군 시너지 임계점 | 한 줄 개성 태그와 조합 시너지 |
+| | Luck be a Landlord | 원버튼 진행, 기호 인접 연쇄, 월세 마감 | 조건부 연쇄 패시브(사규 카드) |
+| 관제·방송 | Lobotomy Corporation | CCTV 관제 + 작업 종류 + 제압 | 내근 조립 + 현장 사건 대응 결합 |
+| | Not For Broadcast | 여러 화면 중 온에어 채널 전환 | 한 방을 크게 중계(스포트라이트) |
+| | Do Not Feed the Monkeys | 모니터 관찰, 단서, 파편 서사 | 단골 발주처 후일담 (v5 방송 띠) |
+| | Game Dev Story | 도트 사원 머리 위 스탯 구슬, 집중 오라 | 완성 시 구슬이 지표로 날아가는 손맛 |
+| 러시·이동 무대 | PlateUp! | 낮 장사 + 밤 무료 재배치·카드 | 박리다매 vs 부티크 분기 |
+| | Spiritfarer | 풍경이 흐르는 이동 기지 위 방 건축 | 판 위로 흐르는 서울 야경(steamcity 감성) |
