@@ -4,7 +4,7 @@
 
 - **설계 청사진(이것 하나로 다시 만들 수 있게)**: [BLUEPRINT.md](BLUEPRINT.md)
 - 기획과 생각: [DESIGN.md](DESIGN.md), 씨앗과 시제품 기록: [CONCEPTS.md](CONCEPTS.md), 레퍼런스 역설계: [REFERENCES.md](REFERENCES.md)
-- 현재 시제품: `agents.html`(꼬물이 에이전트 회사 v3)
+- 현재 시제품: `agents.html`(꼬물이 에이전트 회사 v4). 원본은 `agents/`(shell.html + src/*.js 모듈). 빌드: `python3 build.py <Galmuri11.woff2> agents agents.html`
 - 플레이: `index.html`을 브라우저로 열면 된다. 글꼴까지 한 파일에 들어 있다.
 
 ## 파일

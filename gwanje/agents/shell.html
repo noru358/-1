@@ -1,0 +1,132 @@
+<title>꼬물이 에이전트 회사</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Galmuri11"; src: url(data:font/woff2;base64,__FONT__) format("woff2"); font-display: block; }
+/* 위: 날·지표 / 목표 카드 / 판(16×9) / 도구 / 아래 두 칸: 왼쪽 주문 카드·방송, 오른쪽 분업판·꼬물이 목록 */
+:root {
+  --bg: #12101a; --panel: #1c1928; --line: #363049; --fg: #ece6f5; --dim: #9a93ad;
+  --acc: #7fe0d0; --warm: #f2b46d; --hot: #ff6a5a; --paper: #e9e2cc; --ink: #2a2338; --inkdim: #6b6258;
+  --f: "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.5 var(--f); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 24px; -webkit-font-smoothing: none; }
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 8px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 6px 16px; }
+h1 { margin: 0; font-size: 20px; font-weight: 400; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums; color: var(--dim); }
+.stats b { color: var(--acc); font-weight: 400; }
+.chip { display: inline-grid; place-items: center; width: 14px; height: 14px; font-style: normal; font-size: 9px; line-height: 1; color: #1b1420; background: var(--c); border: 1px solid #1b1420; margin-right: 1px; vertical-align: -2px; }
+.chip.empty { background: transparent; color: var(--c); border: 1px dashed var(--c); }
+.goal { background: var(--panel); border: 1px solid var(--line); padding: 5px 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.goal .gl { color: var(--dim); }
+.goal .gi b { font-weight: 400; margin-right: 4px; }
+.goal .cnt { color: var(--warm); margin-left: 4px; font-variant-numeric: tabular-nums; }
+.goal .mini { display: inline-block; width: 50px; height: 4px; background: #2a2538; margin-left: 6px; vertical-align: 2px; }
+.goal .mini i { display: block; height: 100%; background: var(--warm); }
+.goal .gr { margin-left: auto; color: var(--warm); }
+.daybar { height: 4px; background: var(--panel); }
+.daybar i { display: block; height: 100%; background: var(--acc); width: 0; }
+.screen { position: relative; border: 2px solid var(--line); background: #000; aspect-ratio: 16 / 9; max-width: 100%; }
+.screen canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none; }
+.labels { position: absolute; inset: 0; pointer-events: none; }
+.lab { position: absolute; transform: translate(-50%, 0); font-size: 10px; color: #fff; text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000; white-space: nowrap; line-height: 1.1; }
+.badge { position: absolute; transform: translate(-50%, -100%); background: var(--warm); color: var(--ink); font-size: 10px; padding: 0 4px; white-space: nowrap; }
+.badge.inbox { background: #3e5878; color: #fff; }
+.badge.hot { background: var(--hot); color: #fff; animation: blink .6s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+.board { position: absolute; transform: translate(-50%, -100%); background: rgba(18,16,26,.92); border: 1px solid #a8e0a8; padding: 2px 4px; font-size: 10px; line-height: 1.4; white-space: nowrap; }
+.board div { display: flex; align-items: center; gap: 2px; }
+.board span { margin-right: 4px; color: var(--fg); }
+.board em { font-style: normal; color: var(--dim); margin-left: 4px; }
+.board .chip { width: 11px; height: 11px; font-size: 8px; }
+.mode { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); background: var(--warm); color: var(--ink); padding: 0 10px; font-size: 12px; pointer-events: none; white-space: nowrap; }
+.tip { position: absolute; background: var(--paper); color: var(--ink); padding: 5px 8px; font-size: 11px; max-width: 240px; pointer-events: none; z-index: 4; box-shadow: 0 3px 0 rgba(0,0,0,.4); }
+.tip b { font-weight: 400; }
+.pop { position: absolute; background: var(--paper); color: var(--ink); padding: 8px 10px; font-size: 12px; display: grid; gap: 6px; z-index: 5; min-width: 180px; max-width: 280px; box-shadow: 0 4px 0 rgba(0,0,0,.4); }
+.pop b { font-weight: 400; font-size: 13px; }
+.pop .row { display: flex; flex-wrap: wrap; gap: 4px; }
+.pop button { background: #d9d0b4; border: 1px solid var(--inkdim); padding: 1px 6px; cursor: pointer; color: var(--ink); }
+.pop button.on { background: var(--ink); color: var(--paper); }
+.pop i { font-style: normal; color: var(--inkdim); }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tools button { background: var(--panel); border: 1px solid var(--line); padding: 3px 10px; cursor: pointer; color: var(--dim); }
+.tools button.on { border-color: var(--acc); color: var(--fg); }
+.tools kbd { font: inherit; color: var(--fg); border: 1px solid var(--line); padding: 0 4px; margin-right: 4px; }
+.tools .inv { color: var(--dim); font-size: 12px; margin-left: auto; }
+.tools .inv b { color: var(--fg); font-weight: 400; }
+.low { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 8px; align-items: start; }
+.col { display: grid; gap: 8px; min-width: 0; }
+.box { background: var(--panel); border: 1px solid var(--line); padding: 6px 10px; min-width: 0; }
+.box h2 { margin: 0 0 4px; font-size: 12px; font-weight: 400; color: var(--dim); }
+.recipes { display: grid; gap: 3px; font-size: 12px; }
+.rc { display: flex; justify-content: space-between; gap: 8px; }
+.rc b { font-weight: 400; }
+.rc.how { color: var(--dim); font-size: 11px; display: block; border-top: 1px dashed var(--line); padding-top: 4px; margin-top: 2px; }
+.ticker { color: var(--dim); min-height: 2.6em; }
+.ticker b { color: var(--fg); font-weight: 400; }
+.modes { display: flex; gap: 4px; flex-wrap: wrap; }
+.modes button, .role button { background: #26223a; border: 1px solid var(--line); padding: 1px 8px; cursor: pointer; color: var(--dim); }
+.modes button.on { border-color: var(--acc); color: var(--fg); }
+.roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 3px 10px; margin-top: 6px; font-size: 12px; }
+.role { display: flex; align-items: center; gap: 4px; }
+.role span { flex: 1; }
+.role b { font-weight: 400; min-width: 1.4em; text-align: center; color: var(--acc); }
+.hint { margin: 4px 0 0; color: var(--dim); font-size: 11px; }
+.crew { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 12px; font-size: 12px; margin-top: 4px; }
+.crew button { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); grid-template-rows: auto auto; gap: 0 6px; background: none; border: 0; padding: 2px 0; text-align: left; cursor: pointer; border-bottom: 1px dashed #2a2538; }
+.crew b { font-weight: 400; grid-row: span 2; }
+.crew span { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crew .rl { color: var(--fg); }
+.crew .idle { color: var(--warm); } .crew .stuck { color: var(--hot); }
+.ov { position: fixed; inset: 0; background: rgba(10,8,18,.8); display: grid; place-items: center; z-index: 20; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
+.report { background: var(--paper); color: var(--ink); width: min(580px, 100%); padding: 14px 18px; display: grid; gap: 6px; max-height: 100%; overflow: auto; }
+.report h2 { margin: 0; font-size: 18px; font-weight: 400; }
+.report table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.report td, .report th { border-bottom: 1px dashed var(--inkdim); padding: 2px 4px; text-align: right; font-weight: 400; }
+.report td:first-child, .report th:first-child { text-align: left; }
+.report .up { color: #2a7a4a; } .report .down { color: #a83a3a; }
+.report p { margin: 0; color: var(--inkdim); }
+.report .diag { color: var(--ink); background: #fff3d0; padding: 6px 8px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.card { text-align: left; background: #d9d0b4; border: 2px solid var(--ink); padding: 8px 10px; cursor: pointer; color: var(--ink); display: grid; gap: 2px; }
+.card:hover { background: #fff6dc; }
+.card b { font-weight: 400; font-size: 14px; }
+.card i { font-style: normal; font-size: 12px; color: var(--inkdim); }
+@media (max-width: 720px) { .low, .cards { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .badge.hot { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>꼬물이 에이전트 회사</h1>
+    <div class="stats"><span id="day">1일째</span><span>오늘 처리 <b id="done">0</b></span><span>평균 <b id="avg">-</b></span><span>검수 통과 <b id="qual">-</b></span><span>유지비 <b id="cost">-</b></span></div>
+  </header>
+  <div class="goal" id="goal"></div>
+  <div class="daybar"><i id="dayFill"></i></div>
+  <div class="screen"><canvas id="cv" width="384" height="216"></canvas><div class="labels" id="labels"></div><div class="mode" id="mode" hidden></div><div class="tip" id="tip" hidden></div><div class="pop" id="pop" hidden></div></div>
+  <div class="tools">
+    <button type="button" id="tSel" class="on"><kbd>S</kbd>고르기</button>
+    <button type="button" id="tRoad"><kbd>R</kbd>길 깔기</button>
+    <button type="button" id="tErase"><kbd>E</kbd>길 지우기</button>
+    <button type="button" id="tPause"><kbd>Space</kbd>멈춤</button>
+    <button type="button" id="tSpeed"><kbd>F</kbd>빠르게 ×1</button>
+    <span class="inv" id="inv"></span>
+  </div>
+  <div class="low">
+    <div class="col">
+      <div class="box"><h2>주문 카드 (필요한 부품)</h2><div class="recipes" id="recipes"></div></div>
+      <div class="box ticker" id="ticker"><b>인간</b> 컴퓨터 앞에 앉았다.</div>
+    </div>
+    <div class="box"><h2>분업</h2><div id="teams"></div><div class="crew" id="crew"></div></div>
+  </div>
+</div>
+<div class="ov" id="repOv" hidden><div class="report" role="dialog" aria-label="하루 보고" id="rep"></div></div>
+<script>
+'use strict';
+/*__JS__*/
+</script>
